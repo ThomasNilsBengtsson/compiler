@@ -202,6 +202,33 @@ namespace yy {
       case symbol_kind::S_INT: // INT
       case symbol_kind::S_LP: // LP
       case symbol_kind::S_RP: // RP
+      case symbol_kind::S_LBRACE: // LBRACE
+      case symbol_kind::S_RBRACE: // RBRACE
+      case symbol_kind::S_ASSIGN: // ASSIGN
+      case symbol_kind::S_AND: // AND
+      case symbol_kind::S_OR: // OR
+      case symbol_kind::S_LT: // LT
+      case symbol_kind::S_GT: // GT
+      case symbol_kind::S_EQ: // EQ
+      case symbol_kind::S_NOT: // NOT
+      case symbol_kind::S_STATIC: // STATIC
+      case symbol_kind::S_PUBLIC: // PUBLIC
+      case symbol_kind::S_CLASS: // CLASS
+      case symbol_kind::S_VOID: // VOID
+      case symbol_kind::S_MAIN: // MAIN
+      case symbol_kind::S_STRING: // STRING
+      case symbol_kind::S_BOOLEAN: // BOOLEAN
+      case symbol_kind::S_IF: // IF
+      case symbol_kind::S_ELSE: // ELSE
+      case symbol_kind::S_WHILE: // WHILE
+      case symbol_kind::S_SYSTEM_OUT_PRINTLN: // SYSTEM_OUT_PRINTLN
+      case symbol_kind::S_RETURN: // RETURN
+      case symbol_kind::S_TRUE: // TRUE
+      case symbol_kind::S_FALSE: // FALSE
+      case symbol_kind::S_THIS: // THIS
+      case symbol_kind::S_NEW: // NEW
+      case symbol_kind::S_LENGTH: // LENGTH
+      case symbol_kind::S_IDENTIFIER: // IDENTIFIER
         value.YY_MOVE_OR_COPY< std::string > (YY_MOVE (that.value));
         break;
 
@@ -232,6 +259,33 @@ namespace yy {
       case symbol_kind::S_INT: // INT
       case symbol_kind::S_LP: // LP
       case symbol_kind::S_RP: // RP
+      case symbol_kind::S_LBRACE: // LBRACE
+      case symbol_kind::S_RBRACE: // RBRACE
+      case symbol_kind::S_ASSIGN: // ASSIGN
+      case symbol_kind::S_AND: // AND
+      case symbol_kind::S_OR: // OR
+      case symbol_kind::S_LT: // LT
+      case symbol_kind::S_GT: // GT
+      case symbol_kind::S_EQ: // EQ
+      case symbol_kind::S_NOT: // NOT
+      case symbol_kind::S_STATIC: // STATIC
+      case symbol_kind::S_PUBLIC: // PUBLIC
+      case symbol_kind::S_CLASS: // CLASS
+      case symbol_kind::S_VOID: // VOID
+      case symbol_kind::S_MAIN: // MAIN
+      case symbol_kind::S_STRING: // STRING
+      case symbol_kind::S_BOOLEAN: // BOOLEAN
+      case symbol_kind::S_IF: // IF
+      case symbol_kind::S_ELSE: // ELSE
+      case symbol_kind::S_WHILE: // WHILE
+      case symbol_kind::S_SYSTEM_OUT_PRINTLN: // SYSTEM_OUT_PRINTLN
+      case symbol_kind::S_RETURN: // RETURN
+      case symbol_kind::S_TRUE: // TRUE
+      case symbol_kind::S_FALSE: // FALSE
+      case symbol_kind::S_THIS: // THIS
+      case symbol_kind::S_NEW: // NEW
+      case symbol_kind::S_LENGTH: // LENGTH
+      case symbol_kind::S_IDENTIFIER: // IDENTIFIER
         value.move< std::string > (YY_MOVE (that.value));
         break;
 
@@ -262,6 +316,33 @@ namespace yy {
       case symbol_kind::S_INT: // INT
       case symbol_kind::S_LP: // LP
       case symbol_kind::S_RP: // RP
+      case symbol_kind::S_LBRACE: // LBRACE
+      case symbol_kind::S_RBRACE: // RBRACE
+      case symbol_kind::S_ASSIGN: // ASSIGN
+      case symbol_kind::S_AND: // AND
+      case symbol_kind::S_OR: // OR
+      case symbol_kind::S_LT: // LT
+      case symbol_kind::S_GT: // GT
+      case symbol_kind::S_EQ: // EQ
+      case symbol_kind::S_NOT: // NOT
+      case symbol_kind::S_STATIC: // STATIC
+      case symbol_kind::S_PUBLIC: // PUBLIC
+      case symbol_kind::S_CLASS: // CLASS
+      case symbol_kind::S_VOID: // VOID
+      case symbol_kind::S_MAIN: // MAIN
+      case symbol_kind::S_STRING: // STRING
+      case symbol_kind::S_BOOLEAN: // BOOLEAN
+      case symbol_kind::S_IF: // IF
+      case symbol_kind::S_ELSE: // ELSE
+      case symbol_kind::S_WHILE: // WHILE
+      case symbol_kind::S_SYSTEM_OUT_PRINTLN: // SYSTEM_OUT_PRINTLN
+      case symbol_kind::S_RETURN: // RETURN
+      case symbol_kind::S_TRUE: // TRUE
+      case symbol_kind::S_FALSE: // FALSE
+      case symbol_kind::S_THIS: // THIS
+      case symbol_kind::S_NEW: // NEW
+      case symbol_kind::S_LENGTH: // LENGTH
+      case symbol_kind::S_IDENTIFIER: // IDENTIFIER
         value.copy< std::string > (that.value);
         break;
 
@@ -290,6 +371,33 @@ namespace yy {
       case symbol_kind::S_INT: // INT
       case symbol_kind::S_LP: // LP
       case symbol_kind::S_RP: // RP
+      case symbol_kind::S_LBRACE: // LBRACE
+      case symbol_kind::S_RBRACE: // RBRACE
+      case symbol_kind::S_ASSIGN: // ASSIGN
+      case symbol_kind::S_AND: // AND
+      case symbol_kind::S_OR: // OR
+      case symbol_kind::S_LT: // LT
+      case symbol_kind::S_GT: // GT
+      case symbol_kind::S_EQ: // EQ
+      case symbol_kind::S_NOT: // NOT
+      case symbol_kind::S_STATIC: // STATIC
+      case symbol_kind::S_PUBLIC: // PUBLIC
+      case symbol_kind::S_CLASS: // CLASS
+      case symbol_kind::S_VOID: // VOID
+      case symbol_kind::S_MAIN: // MAIN
+      case symbol_kind::S_STRING: // STRING
+      case symbol_kind::S_BOOLEAN: // BOOLEAN
+      case symbol_kind::S_IF: // IF
+      case symbol_kind::S_ELSE: // ELSE
+      case symbol_kind::S_WHILE: // WHILE
+      case symbol_kind::S_SYSTEM_OUT_PRINTLN: // SYSTEM_OUT_PRINTLN
+      case symbol_kind::S_RETURN: // RETURN
+      case symbol_kind::S_TRUE: // TRUE
+      case symbol_kind::S_FALSE: // FALSE
+      case symbol_kind::S_THIS: // THIS
+      case symbol_kind::S_NEW: // NEW
+      case symbol_kind::S_LENGTH: // LENGTH
+      case symbol_kind::S_IDENTIFIER: // IDENTIFIER
         value.move< std::string > (that.value);
         break;
 
@@ -559,6 +667,33 @@ namespace yy {
       case symbol_kind::S_INT: // INT
       case symbol_kind::S_LP: // LP
       case symbol_kind::S_RP: // RP
+      case symbol_kind::S_LBRACE: // LBRACE
+      case symbol_kind::S_RBRACE: // RBRACE
+      case symbol_kind::S_ASSIGN: // ASSIGN
+      case symbol_kind::S_AND: // AND
+      case symbol_kind::S_OR: // OR
+      case symbol_kind::S_LT: // LT
+      case symbol_kind::S_GT: // GT
+      case symbol_kind::S_EQ: // EQ
+      case symbol_kind::S_NOT: // NOT
+      case symbol_kind::S_STATIC: // STATIC
+      case symbol_kind::S_PUBLIC: // PUBLIC
+      case symbol_kind::S_CLASS: // CLASS
+      case symbol_kind::S_VOID: // VOID
+      case symbol_kind::S_MAIN: // MAIN
+      case symbol_kind::S_STRING: // STRING
+      case symbol_kind::S_BOOLEAN: // BOOLEAN
+      case symbol_kind::S_IF: // IF
+      case symbol_kind::S_ELSE: // ELSE
+      case symbol_kind::S_WHILE: // WHILE
+      case symbol_kind::S_SYSTEM_OUT_PRINTLN: // SYSTEM_OUT_PRINTLN
+      case symbol_kind::S_RETURN: // RETURN
+      case symbol_kind::S_TRUE: // TRUE
+      case symbol_kind::S_FALSE: // FALSE
+      case symbol_kind::S_THIS: // THIS
+      case symbol_kind::S_NEW: // NEW
+      case symbol_kind::S_LENGTH: // LENGTH
+      case symbol_kind::S_IDENTIFIER: // IDENTIFIER
         yylhs.value.emplace< std::string > ();
         break;
 
@@ -579,7 +714,7 @@ namespace yy {
   case 2: // root: expression
 #line 41 "parser.yy"
                        {root = yystack_[0].value.as < Node * > ();}
-#line 583 "parser.tab.cc"
+#line 718 "parser.tab.cc"
     break;
 
   case 3: // expression: expression PLUSOP expression
@@ -594,7 +729,7 @@ namespace yy {
                             yylhs.value.as < Node * > ()->children.push_back(yystack_[0].value.as < Node * > ());
                             /* printf("r1 "); */
                           }
-#line 598 "parser.tab.cc"
+#line 733 "parser.tab.cc"
     break;
 
   case 4: // expression: expression MINUSOP expression
@@ -605,7 +740,7 @@ namespace yy {
                             yylhs.value.as < Node * > ()->children.push_back(yystack_[0].value.as < Node * > ());
                             /* printf("r2 "); */
                           }
-#line 609 "parser.tab.cc"
+#line 744 "parser.tab.cc"
     break;
 
   case 5: // expression: expression MULTOP expression
@@ -616,29 +751,29 @@ namespace yy {
                             yylhs.value.as < Node * > ()->children.push_back(yystack_[0].value.as < Node * > ());
                             /* printf("r3 "); */
                           }
-#line 620 "parser.tab.cc"
+#line 755 "parser.tab.cc"
     break;
 
   case 6: // expression: factor
 #line 65 "parser.yy"
                           {yylhs.value.as < Node * > () = yystack_[0].value.as < Node * > (); /* printf("r4 ");*/}
-#line 626 "parser.tab.cc"
+#line 761 "parser.tab.cc"
     break;
 
   case 7: // factor: INT
 #line 68 "parser.yy"
                           {  yylhs.value.as < Node * > () = new Node("Int", yystack_[0].value.as < std::string > (), yylineno); /* printf("r5 ");  Here we create a leaf node Int. The value of the leaf node is $1 */}
-#line 632 "parser.tab.cc"
+#line 767 "parser.tab.cc"
     break;
 
   case 8: // factor: LP expression RP
 #line 69 "parser.yy"
                                { yylhs.value.as < Node * > () = yystack_[1].value.as < Node * > (); /* printf("r6 ");  simply return the expression */}
-#line 638 "parser.tab.cc"
+#line 773 "parser.tab.cc"
     break;
 
 
-#line 642 "parser.tab.cc"
+#line 777 "parser.tab.cc"
 
             default:
               break;
@@ -1033,14 +1168,14 @@ namespace yy {
   const signed char
   parser::yystos_[] =
   {
-       0,     6,     7,    10,    11,    12,    11,     0,     3,     4,
-       5,     8,    11,    11,    11
+       0,     6,     7,    37,    38,    39,    38,     0,     3,     4,
+       5,     8,    38,    38,    38
   };
 
   const signed char
   parser::yyr1_[] =
   {
-       0,     9,    10,    11,    11,    11,    11,    12,    12
+       0,    36,    37,    38,    38,    38,    38,    39,    39
   };
 
   const signed char
@@ -1057,7 +1192,11 @@ namespace yy {
   const parser::yytname_[] =
   {
   "\"end of file\"", "error", "\"invalid token\"", "PLUSOP", "MINUSOP",
-  "MULTOP", "INT", "LP", "RP", "$accept", "root", "expression", "factor", YY_NULLPTR
+  "MULTOP", "INT", "LP", "RP", "LBRACE", "RBRACE", "ASSIGN", "AND", "OR",
+  "LT", "GT", "EQ", "NOT", "STATIC", "PUBLIC", "CLASS", "VOID", "MAIN",
+  "STRING", "BOOLEAN", "IF", "ELSE", "WHILE", "SYSTEM_OUT_PRINTLN",
+  "RETURN", "TRUE", "FALSE", "THIS", "NEW", "LENGTH", "IDENTIFIER",
+  "$accept", "root", "expression", "factor", YY_NULLPTR
   };
 #endif
 
@@ -1098,5 +1237,5 @@ namespace yy {
 
 
 } // yy
-#line 1102 "parser.tab.cc"
+#line 1241 "parser.tab.cc"
 

@@ -23,7 +23,7 @@
 
 /* Token definitions for the grammar */
 /* Tokens represent the smallest units of the language, like operators and parentheses */
-%token <std::string> PLUSOP MINUSOP MULTOP INT LP RP 
+%token <std::string> PLUSOP MINUSOP MULTOP INT LP RP LBRACE RBRACE ASSIGN AND OR LT GT EQ NOT STATIC PUBLIC CLASS VOID MAIN STRING BOOLEAN IF ELSE WHILE SYSTEM_OUT_PRINTLN RETURN TRUE FALSE THIS NEW LENGTH IDENTIFIER
 %token END 0 "end of file"
 
 /* Operator precedence and associativity rules */
