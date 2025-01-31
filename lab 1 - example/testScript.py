@@ -29,7 +29,7 @@ def run_interpreter(file_path = ""):
         process = subprocess.Popen(['./interpreter'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     else:
         process = subprocess.Popen(['java', file_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    
+
     stdout, stderr = process.communicate()
     return stdout.decode(), stderr.decode()
 
@@ -91,7 +91,7 @@ def run_test_files(folder_path, test_type, file_details, global_id):
             expected_lines = set(expected_errors.keys())
             compiler_error_lines = set(compiler_errors.keys())
             success = expected_lines == compiler_error_lines
-            
+
             # Store file details including the test type
             file_details[global_id] = {
                 'file_name': file, 
@@ -111,7 +111,7 @@ def display_file_details(file_id, file_details, output_type=None):
     if file_id in file_details:
         details = file_details[file_id]
         print(colored(f"\nDetails for {details['file_name']}:", Colors.GREEN))
-        
+
         if output_type == "raw" or (output_type is None and ('expected_errors' in details and  not details['expected_errors']) and ('compiler_errors' in details and not details['compiler_errors'])):
             print("Standard Output:\n" + details['stdout'])
             if(details['stderr']):
@@ -137,7 +137,7 @@ def display_file_details(file_id, file_details, output_type=None):
                         print(colored(f"    Line {line_number}: {error_message}", Colors.ORANGE))
             else: 
                 print(colored("\n No Unexpected Compiler Errors Exist!", Colors.DARK_GREEN))
-        
+
         # Check if the expected result matches the provided one
         # print("hello")
         # print(details['expected'])
@@ -209,16 +209,16 @@ def main():
         print("  -interpreter   Run tests in the 'test_files/assignment3_valid' directory for interpreter-related functionality.")
         print("You can specify multiple options at once to run tests across different categories.")
         sys.exit(1)
-    
+
     # check if file compiler exists
     if not os.path.exists('./compiler'):
         print(colored("Compiler executable not found. Please compile the compiler first.", Colors.RED))
         sys.exit(1)
-    
-    
+
+
     test_types = sys.argv[1:]
     valid_types = {"-lexical": "test_files/lexical_errors", "-syntax": "test_files/syntax_errors", "-semantic": "test_files/semantic_errors", "-valid": "test_files/valid", "-interpreter": "test_files/assignment3_valid"}
-    
+
     global global_file_id
     file_details = {}   
     summary_generated = False
@@ -229,7 +229,7 @@ def main():
                 global_file_id = run_interpreter_tests(valid_types[test_type], test_type[1:], file_details, global_file_id)
             else:
                 global_file_id = run_test_files(valid_types[test_type], test_type[1:], file_details, global_file_id)
-            
+
             summary_generated = True
         else:
             print(colored(f"Invalid test type: {test_type}. Please choose from -lexical, -syntax, -semantic, or -valid.", Colors.RED))

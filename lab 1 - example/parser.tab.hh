@@ -49,7 +49,7 @@
 
   #include <string>
   #include "Node.h"
-  #define USE_LEX_ONLY false //change this macro to true if you want to isolate the lexer from the parser.
+  #define USE_LEX_ONLY true //change this macro to true if you want to isolate the lexer from the parser.
 
 #line 55 "parser.tab.hh"
 
@@ -385,6 +385,7 @@ namespace yy {
       // root
       // expression
       // factor
+      // Identifier
       char dummy1[sizeof (Node *)];
 
       // PLUSOP
@@ -420,6 +421,11 @@ namespace yy {
       // NEW
       // LENGTH
       // IDENTIFIER
+      // SEMICOLON
+      // COMMA
+      // DOT
+      // LBRACKET
+      // RBRACKET
       char dummy2[sizeof (std::string)];
     };
 
@@ -496,7 +502,12 @@ namespace yy {
     THIS = 287,                    // THIS
     NEW = 288,                     // NEW
     LENGTH = 289,                  // LENGTH
-    IDENTIFIER = 290               // IDENTIFIER
+    IDENTIFIER = 290,              // IDENTIFIER
+    SEMICOLON = 291,               // SEMICOLON
+    COMMA = 292,                   // COMMA
+    DOT = 293,                     // DOT
+    LBRACKET = 294,                // LBRACKET
+    RBRACKET = 295                 // RBRACKET
       };
       /// Backward compatibility alias (Bison 3.6).
       typedef token_kind_type yytokentype;
@@ -513,7 +524,7 @@ namespace yy {
     {
       enum symbol_kind_type
       {
-        YYNTOKENS = 36, ///< Number of tokens.
+        YYNTOKENS = 41, ///< Number of tokens.
         S_YYEMPTY = -2,
         S_YYEOF = 0,                             // "end of file"
         S_YYerror = 1,                           // error
@@ -551,10 +562,16 @@ namespace yy {
         S_NEW = 33,                              // NEW
         S_LENGTH = 34,                           // LENGTH
         S_IDENTIFIER = 35,                       // IDENTIFIER
-        S_YYACCEPT = 36,                         // $accept
-        S_root = 37,                             // root
-        S_expression = 38,                       // expression
-        S_factor = 39                            // factor
+        S_SEMICOLON = 36,                        // SEMICOLON
+        S_COMMA = 37,                            // COMMA
+        S_DOT = 38,                              // DOT
+        S_LBRACKET = 39,                         // LBRACKET
+        S_RBRACKET = 40,                         // RBRACKET
+        S_YYACCEPT = 41,                         // $accept
+        S_root = 42,                             // root
+        S_expression = 43,                       // expression
+        S_factor = 44,                           // factor
+        S_Identifier = 45                        // Identifier
       };
     };
 
@@ -592,6 +609,7 @@ namespace yy {
       case symbol_kind::S_root: // root
       case symbol_kind::S_expression: // expression
       case symbol_kind::S_factor: // factor
+      case symbol_kind::S_Identifier: // Identifier
         value.move< Node * > (std::move (that.value));
         break;
 
@@ -628,6 +646,11 @@ namespace yy {
       case symbol_kind::S_NEW: // NEW
       case symbol_kind::S_LENGTH: // LENGTH
       case symbol_kind::S_IDENTIFIER: // IDENTIFIER
+      case symbol_kind::S_SEMICOLON: // SEMICOLON
+      case symbol_kind::S_COMMA: // COMMA
+      case symbol_kind::S_DOT: // DOT
+      case symbol_kind::S_LBRACKET: // LBRACKET
+      case symbol_kind::S_RBRACKET: // RBRACKET
         value.move< std::string > (std::move (that.value));
         break;
 
@@ -703,6 +726,7 @@ switch (yykind)
       case symbol_kind::S_root: // root
       case symbol_kind::S_expression: // expression
       case symbol_kind::S_factor: // factor
+      case symbol_kind::S_Identifier: // Identifier
         value.template destroy< Node * > ();
         break;
 
@@ -739,6 +763,11 @@ switch (yykind)
       case symbol_kind::S_NEW: // NEW
       case symbol_kind::S_LENGTH: // LENGTH
       case symbol_kind::S_IDENTIFIER: // IDENTIFIER
+      case symbol_kind::S_SEMICOLON: // SEMICOLON
+      case symbol_kind::S_COMMA: // COMMA
+      case symbol_kind::S_DOT: // DOT
+      case symbol_kind::S_LBRACKET: // LBRACKET
+      case symbol_kind::S_RBRACKET: // RBRACKET
         value.template destroy< std::string > ();
         break;
 
@@ -1430,6 +1459,81 @@ switch (yykind)
         return symbol_type (token::IDENTIFIER, v);
       }
 #endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_SEMICOLON (std::string v)
+      {
+        return symbol_type (token::SEMICOLON, std::move (v));
+      }
+#else
+      static
+      symbol_type
+      make_SEMICOLON (const std::string& v)
+      {
+        return symbol_type (token::SEMICOLON, v);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_COMMA (std::string v)
+      {
+        return symbol_type (token::COMMA, std::move (v));
+      }
+#else
+      static
+      symbol_type
+      make_COMMA (const std::string& v)
+      {
+        return symbol_type (token::COMMA, v);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_DOT (std::string v)
+      {
+        return symbol_type (token::DOT, std::move (v));
+      }
+#else
+      static
+      symbol_type
+      make_DOT (const std::string& v)
+      {
+        return symbol_type (token::DOT, v);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_LBRACKET (std::string v)
+      {
+        return symbol_type (token::LBRACKET, std::move (v));
+      }
+#else
+      static
+      symbol_type
+      make_LBRACKET (const std::string& v)
+      {
+        return symbol_type (token::LBRACKET, v);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_RBRACKET (std::string v)
+      {
+        return symbol_type (token::RBRACKET, std::move (v));
+      }
+#else
+      static
+      symbol_type
+      make_RBRACKET (const std::string& v)
+      {
+        return symbol_type (token::RBRACKET, v);
+      }
+#endif
 
 
     class context
@@ -1758,9 +1862,9 @@ switch (yykind)
     /// Constants.
     enum
     {
-      yylast_ = 16,     ///< Last index in yytable_.
-      yynnts_ = 4,  ///< Number of nonterminal symbols.
-      yyfinal_ = 7 ///< Termination state number.
+      yylast_ = 73,     ///< Last index in yytable_.
+      yynnts_ = 5,  ///< Number of nonterminal symbols.
+      yyfinal_ = 17 ///< Termination state number.
     };
 
 
@@ -1806,10 +1910,10 @@ switch (yykind)
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
       15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
       25,    26,    27,    28,    29,    30,    31,    32,    33,    34,
-      35
+      35,    36,    37,    38,    39,    40
     };
     // Last valid token kind.
-    const int code_max = 290;
+    const int code_max = 295;
 
     if (t <= 0)
       return symbol_kind::S_YYEOF;
@@ -1830,6 +1934,7 @@ switch (yykind)
       case symbol_kind::S_root: // root
       case symbol_kind::S_expression: // expression
       case symbol_kind::S_factor: // factor
+      case symbol_kind::S_Identifier: // Identifier
         value.copy< Node * > (YY_MOVE (that.value));
         break;
 
@@ -1866,6 +1971,11 @@ switch (yykind)
       case symbol_kind::S_NEW: // NEW
       case symbol_kind::S_LENGTH: // LENGTH
       case symbol_kind::S_IDENTIFIER: // IDENTIFIER
+      case symbol_kind::S_SEMICOLON: // SEMICOLON
+      case symbol_kind::S_COMMA: // COMMA
+      case symbol_kind::S_DOT: // DOT
+      case symbol_kind::S_LBRACKET: // LBRACKET
+      case symbol_kind::S_RBRACKET: // RBRACKET
         value.copy< std::string > (YY_MOVE (that.value));
         break;
 
@@ -1903,6 +2013,7 @@ switch (yykind)
       case symbol_kind::S_root: // root
       case symbol_kind::S_expression: // expression
       case symbol_kind::S_factor: // factor
+      case symbol_kind::S_Identifier: // Identifier
         value.move< Node * > (YY_MOVE (s.value));
         break;
 
@@ -1939,6 +2050,11 @@ switch (yykind)
       case symbol_kind::S_NEW: // NEW
       case symbol_kind::S_LENGTH: // LENGTH
       case symbol_kind::S_IDENTIFIER: // IDENTIFIER
+      case symbol_kind::S_SEMICOLON: // SEMICOLON
+      case symbol_kind::S_COMMA: // COMMA
+      case symbol_kind::S_DOT: // DOT
+      case symbol_kind::S_LBRACKET: // LBRACKET
+      case symbol_kind::S_RBRACKET: // RBRACKET
         value.move< std::string > (YY_MOVE (s.value));
         break;
 
@@ -2007,7 +2123,7 @@ switch (yykind)
 
 
 } // yy
-#line 2011 "parser.tab.hh"
+#line 2127 "parser.tab.hh"
 
 
 

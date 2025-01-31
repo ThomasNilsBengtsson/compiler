@@ -23,7 +23,7 @@
 
 /* Token definitions for the grammar */
 /* Tokens represent the smallest units of the language, like operators and parentheses */
-%token <std::string> PLUSOP MINUSOP MULTOP INT LP RP LBRACE RBRACE ASSIGN AND OR LT GT EQ NOT STATIC PUBLIC CLASS VOID MAIN STRING BOOLEAN IF ELSE WHILE SYSTEM_OUT_PRINTLN RETURN TRUE FALSE THIS NEW LENGTH IDENTIFIER
+%token <std::string> PLUSOP MINUSOP MULTOP INT LP RP LBRACE RBRACE ASSIGN AND OR LT GT EQ NOT STATIC PUBLIC CLASS VOID MAIN STRING BOOLEAN IF ELSE WHILE SYSTEM_OUT_PRINTLN RETURN TRUE FALSE THIS NEW LENGTH IDENTIFIER SEMICOLON COMMA DOT LBRACKET RBRACKET
 %token END 0 "end of file"
 
 /* Operator precedence and associativity rules */
@@ -33,38 +33,96 @@
 
 /* Specify types for non-terminals in the grammar */
 /* The type specifies the data type of the values associated with these non-terminals */
-%type <Node *> root expression factor
+%type <Node *> root expression factor Identifier mainclass
 
 /* Grammar rules section */
 /* This section defines the production rules for the language being parsed */
 %%
-root:       expression {root = $1;};
+root:      expression {root = $1;}; mainclass {root = $2;};
 
-expression: expression PLUSOP expression {      /*
-                                                  Create a subtree that corresponds to the AddExpression
-                                                  The root of the subtree is AddExpression
-                                                  The childdren of the AddExpression subtree are the left hand side (expression accessed through $1) and right hand side of the expression (expression accessed through $3)
-                                                */
-                            $$ = new Node("AddExpression", "", yylineno);
-                            $$->children.push_back($1);
-                            $$->children.push_back($3);
-                            /* printf("r1 "); */
-                          }
-            | expression MINUSOP expression {
-                            $$ = new Node("SubExpression", "", yylineno);
-                            $$->children.push_back($1);
-                            $$->children.push_back($3);
-                            /* printf("r2 "); */
-                          }
-            | expression MULTOP expression {
-                            $$ = new Node("MultExpression", "", yylineno);
-                            $$->children.push_back($1);
-                            $$->children.push_back($3);
-                            /* printf("r3 "); */
-                          }
-            | factor      {$$ = $1; /* printf("r4 ");*/}
-            ;
+mainclass: PUBLIC CLASS IDENTIFIER LBRACE PUBLIC STATIC VOID MAIN LP STRING LBRACKET RBRACKET IDENTIFIER RP LBRACE RBRACE RBRACE { 
+                $$ = new Node("MainClass", "", yylineno);
+                $$->children.push_back(new Node("Identifier", $3, yylineno));
+                $$->children.push_back($13);
+          } 
+
+    ;
+
+expression: expression PLUSOP expression { 
+                $$ = new Node("AddExpression", "", yylineno);
+                $$->children.push_back($1);
+                $$->children.push_back($3);
+          }
+        | expression MINUSOP expression { 
+                $$ = new Node("SubExpression", "", yylineno);
+                $$->children.push_back($1);
+                $$->children.push_back($3);
+          }
+        | expression MULTOP expression { 
+                $$ = new Node("MultExpression", "", yylineno);
+                $$->children.push_back($1);
+                $$->children.push_back($3);
+          }
+        | expression AND expression { 
+                $$ = new Node("AndExpression", "", yylineno);
+                $$->children.push_back($1);
+                $$->children.push_back($3);
+          }
+        | expression OR expression { 
+                $$ = new Node("OrExpression", "", yylineno);
+                $$->children.push_back($1);
+                $$->children.push_back($3);
+          }
+        | expression LT expression { 
+                $$ = new Node("LtExpression", "", yylineno);
+                $$->children.push_back($1);
+                $$->children.push_back($3);
+          }
+        | expression GT expression { 
+                $$ = new Node("GtExpression", "", yylineno);
+                $$->children.push_back($1);
+                $$->children.push_back($3);
+          }
+        | expression EQ expression { 
+                $$ = new Node("EqExpression", "", yylineno);
+                $$->children.push_back($1);
+                $$->children.push_back($3);
+          }
+        /*| expression DOT IDENTIFIER LP (expression (COMMA expression)*)? RP { 
+                $$ = new Node("MethodCall", $3, yylineno);
+                $$->children.push_back($1);
+                if ($5) $$->children.push_back($5);
+          }
+
+*/
+        | NEW INT LBRACKET expression RBRACKET {
+                $$ = new Node("NewArrayExpression", "", yylineno);
+                $$->children.push_back($4);
+          }
+        | NEW IDENTIFIER LP RP {
+                $$ = new Node("NewObjectExpression", $2, yylineno);
+          }
+        | TRUE { $$ = new Node("BooleanLiteral", "true", yylineno); }
+        | FALSE { $$ = new Node("BooleanLiteral", "false", yylineno); }
+        | Identifier { $$ = $1; }
+        | THIS { $$ = new Node("This", "", yylineno); }
+        | NEW INT LBRACKET expression RBRACKET { $$ = new Node("NewArrayExpression", "", yylineno); $$->children.push_back($4); }
+        | NEW IDENTIFIER LP RP { $$ = new Node("NewObjectExpression", $2, yylineno); }
+        | NOT expression { $$ = new Node("NotExpression", "", yylineno); $$->children.push_back($2); }
+        | LP expression RP { $$ = $2; }
+        | factor { $$ = $1; };
+
+
+
 
 factor:     INT           {  $$ = new Node("Int", $1, yylineno); /* printf("r5 ");  Here we create a leaf node Int. The value of the leaf node is $1 */}
             | LP expression RP { $$ = $2; /* printf("r6 ");  simply return the expression */}
     ;
+
+
+
+Identifier: IDENTIFIER { $$ = new Node("Identifier", $1, yylineno); /* printf("r7 "); */}
+    ;
+  
+
+%%
