@@ -49,7 +49,7 @@
 
   #include <string>
   #include "Node.h"
-  #define USE_LEX_ONLY true //change this macro to true if you want to isolate the lexer from the parser.
+  #define USE_LEX_ONLY false //change this macro to true if you want to isolate the lexer from the parser.
 
 #line 55 "parser.tab.hh"
 
@@ -383,6 +383,13 @@ namespace yy {
     union union_type
     {
       // root
+      // Goal
+      // MainClass
+      // ClassDeclaration
+      // MethodDeclaration
+      // VarDeclaration
+      // Type
+      // Statement
       // expression
       // factor
       // Identifier
@@ -569,9 +576,16 @@ namespace yy {
         S_RBRACKET = 40,                         // RBRACKET
         S_YYACCEPT = 41,                         // $accept
         S_root = 42,                             // root
-        S_expression = 43,                       // expression
-        S_factor = 44,                           // factor
-        S_Identifier = 45                        // Identifier
+        S_Goal = 43,                             // Goal
+        S_MainClass = 44,                        // MainClass
+        S_ClassDeclaration = 45,                 // ClassDeclaration
+        S_MethodDeclaration = 46,                // MethodDeclaration
+        S_VarDeclaration = 47,                   // VarDeclaration
+        S_Type = 48,                             // Type
+        S_Statement = 49,                        // Statement
+        S_expression = 50,                       // expression
+        S_factor = 51,                           // factor
+        S_Identifier = 52                        // Identifier
       };
     };
 
@@ -607,6 +621,13 @@ namespace yy {
         switch (this->kind ())
     {
       case symbol_kind::S_root: // root
+      case symbol_kind::S_Goal: // Goal
+      case symbol_kind::S_MainClass: // MainClass
+      case symbol_kind::S_ClassDeclaration: // ClassDeclaration
+      case symbol_kind::S_MethodDeclaration: // MethodDeclaration
+      case symbol_kind::S_VarDeclaration: // VarDeclaration
+      case symbol_kind::S_Type: // Type
+      case symbol_kind::S_Statement: // Statement
       case symbol_kind::S_expression: // expression
       case symbol_kind::S_factor: // factor
       case symbol_kind::S_Identifier: // Identifier
@@ -724,6 +745,13 @@ namespace yy {
 switch (yykind)
     {
       case symbol_kind::S_root: // root
+      case symbol_kind::S_Goal: // Goal
+      case symbol_kind::S_MainClass: // MainClass
+      case symbol_kind::S_ClassDeclaration: // ClassDeclaration
+      case symbol_kind::S_MethodDeclaration: // MethodDeclaration
+      case symbol_kind::S_VarDeclaration: // VarDeclaration
+      case symbol_kind::S_Type: // Type
+      case symbol_kind::S_Statement: // Statement
       case symbol_kind::S_expression: // expression
       case symbol_kind::S_factor: // factor
       case symbol_kind::S_Identifier: // Identifier
@@ -1602,7 +1630,7 @@ switch (yykind)
     // Tables.
     // YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
     // STATE-NUM.
-    static const signed char yypact_[];
+    static const short yypact_[];
 
     // YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
     // Performed when YYTABLE does not specify something else to do.  Zero
@@ -1635,7 +1663,7 @@ switch (yykind)
 
 #if YYDEBUG
     // YYRLINE[YYN] -- Source line where rule number YYN was defined.
-    static const signed char yyrline_[];
+    static const short yyrline_[];
     /// Report on the debug stream that the rule \a r is going to be reduced.
     virtual void yy_reduce_print_ (int r) const;
     /// Print the state stack on the debug stream.
@@ -1862,9 +1890,9 @@ switch (yykind)
     /// Constants.
     enum
     {
-      yylast_ = 73,     ///< Last index in yytable_.
-      yynnts_ = 5,  ///< Number of nonterminal symbols.
-      yyfinal_ = 17 ///< Termination state number.
+      yylast_ = 271,     ///< Last index in yytable_.
+      yynnts_ = 12,  ///< Number of nonterminal symbols.
+      yyfinal_ = 6 ///< Termination state number.
     };
 
 
@@ -1932,6 +1960,13 @@ switch (yykind)
     switch (this->kind ())
     {
       case symbol_kind::S_root: // root
+      case symbol_kind::S_Goal: // Goal
+      case symbol_kind::S_MainClass: // MainClass
+      case symbol_kind::S_ClassDeclaration: // ClassDeclaration
+      case symbol_kind::S_MethodDeclaration: // MethodDeclaration
+      case symbol_kind::S_VarDeclaration: // VarDeclaration
+      case symbol_kind::S_Type: // Type
+      case symbol_kind::S_Statement: // Statement
       case symbol_kind::S_expression: // expression
       case symbol_kind::S_factor: // factor
       case symbol_kind::S_Identifier: // Identifier
@@ -2011,6 +2046,13 @@ switch (yykind)
     switch (this->kind ())
     {
       case symbol_kind::S_root: // root
+      case symbol_kind::S_Goal: // Goal
+      case symbol_kind::S_MainClass: // MainClass
+      case symbol_kind::S_ClassDeclaration: // ClassDeclaration
+      case symbol_kind::S_MethodDeclaration: // MethodDeclaration
+      case symbol_kind::S_VarDeclaration: // VarDeclaration
+      case symbol_kind::S_Type: // Type
+      case symbol_kind::S_Statement: // Statement
       case symbol_kind::S_expression: // expression
       case symbol_kind::S_factor: // factor
       case symbol_kind::S_Identifier: // Identifier
@@ -2123,7 +2165,7 @@ switch (yykind)
 
 
 } // yy
-#line 2127 "parser.tab.hh"
+#line 2169 "parser.tab.hh"
 
 
 
