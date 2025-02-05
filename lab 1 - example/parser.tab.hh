@@ -384,13 +384,21 @@ namespace yy {
     {
       // root
       // Goal
+      // ClassDeclarationList
       // MainClass
+      // StatementListM
       // ClassDeclaration
+      // VarDeclarationCL
+      // MethodDeclarationCL
       // MethodDeclaration
+      // MethodDeclarationParams
+      // MethodDeclarationBody
       // VarDeclaration
       // Type
+      // StatementMulti
       // Statement
       // expression
+      // ExpressionParams
       // factor
       // Identifier
       char dummy1[sizeof (Node *)];
@@ -474,7 +482,7 @@ namespace yy {
       enum token_kind_type
       {
         YYEMPTY = -2,
-    END = 0,                       // "end of file"
+    END = 0,                       // "END of FILE"
     YYerror = 256,                 // error
     YYUNDEF = 257,                 // "invalid token"
     PLUSOP = 258,                  // PLUSOP
@@ -533,7 +541,7 @@ namespace yy {
       {
         YYNTOKENS = 41, ///< Number of tokens.
         S_YYEMPTY = -2,
-        S_YYEOF = 0,                             // "end of file"
+        S_YYEOF = 0,                             // "END of FILE"
         S_YYerror = 1,                           // error
         S_YYUNDEF = 2,                           // "invalid token"
         S_PLUSOP = 3,                            // PLUSOP
@@ -577,15 +585,23 @@ namespace yy {
         S_YYACCEPT = 41,                         // $accept
         S_root = 42,                             // root
         S_Goal = 43,                             // Goal
-        S_MainClass = 44,                        // MainClass
-        S_ClassDeclaration = 45,                 // ClassDeclaration
-        S_MethodDeclaration = 46,                // MethodDeclaration
-        S_VarDeclaration = 47,                   // VarDeclaration
-        S_Type = 48,                             // Type
-        S_Statement = 49,                        // Statement
-        S_expression = 50,                       // expression
-        S_factor = 51,                           // factor
-        S_Identifier = 52                        // Identifier
+        S_ClassDeclarationList = 44,             // ClassDeclarationList
+        S_MainClass = 45,                        // MainClass
+        S_StatementListM = 46,                   // StatementListM
+        S_ClassDeclaration = 47,                 // ClassDeclaration
+        S_VarDeclarationCL = 48,                 // VarDeclarationCL
+        S_MethodDeclarationCL = 49,              // MethodDeclarationCL
+        S_MethodDeclaration = 50,                // MethodDeclaration
+        S_MethodDeclarationParams = 51,          // MethodDeclarationParams
+        S_MethodDeclarationBody = 52,            // MethodDeclarationBody
+        S_VarDeclaration = 53,                   // VarDeclaration
+        S_Type = 54,                             // Type
+        S_StatementMulti = 55,                   // StatementMulti
+        S_Statement = 56,                        // Statement
+        S_expression = 57,                       // expression
+        S_ExpressionParams = 58,                 // ExpressionParams
+        S_factor = 59,                           // factor
+        S_Identifier = 60                        // Identifier
       };
     };
 
@@ -622,13 +638,21 @@ namespace yy {
     {
       case symbol_kind::S_root: // root
       case symbol_kind::S_Goal: // Goal
+      case symbol_kind::S_ClassDeclarationList: // ClassDeclarationList
       case symbol_kind::S_MainClass: // MainClass
+      case symbol_kind::S_StatementListM: // StatementListM
       case symbol_kind::S_ClassDeclaration: // ClassDeclaration
+      case symbol_kind::S_VarDeclarationCL: // VarDeclarationCL
+      case symbol_kind::S_MethodDeclarationCL: // MethodDeclarationCL
       case symbol_kind::S_MethodDeclaration: // MethodDeclaration
+      case symbol_kind::S_MethodDeclarationParams: // MethodDeclarationParams
+      case symbol_kind::S_MethodDeclarationBody: // MethodDeclarationBody
       case symbol_kind::S_VarDeclaration: // VarDeclaration
       case symbol_kind::S_Type: // Type
+      case symbol_kind::S_StatementMulti: // StatementMulti
       case symbol_kind::S_Statement: // Statement
       case symbol_kind::S_expression: // expression
+      case symbol_kind::S_ExpressionParams: // ExpressionParams
       case symbol_kind::S_factor: // factor
       case symbol_kind::S_Identifier: // Identifier
         value.move< Node * > (std::move (that.value));
@@ -746,13 +770,21 @@ switch (yykind)
     {
       case symbol_kind::S_root: // root
       case symbol_kind::S_Goal: // Goal
+      case symbol_kind::S_ClassDeclarationList: // ClassDeclarationList
       case symbol_kind::S_MainClass: // MainClass
+      case symbol_kind::S_StatementListM: // StatementListM
       case symbol_kind::S_ClassDeclaration: // ClassDeclaration
+      case symbol_kind::S_VarDeclarationCL: // VarDeclarationCL
+      case symbol_kind::S_MethodDeclarationCL: // MethodDeclarationCL
       case symbol_kind::S_MethodDeclaration: // MethodDeclaration
+      case symbol_kind::S_MethodDeclarationParams: // MethodDeclarationParams
+      case symbol_kind::S_MethodDeclarationBody: // MethodDeclarationBody
       case symbol_kind::S_VarDeclaration: // VarDeclaration
       case symbol_kind::S_Type: // Type
+      case symbol_kind::S_StatementMulti: // StatementMulti
       case symbol_kind::S_Statement: // Statement
       case symbol_kind::S_expression: // expression
+      case symbol_kind::S_ExpressionParams: // ExpressionParams
       case symbol_kind::S_factor: // factor
       case symbol_kind::S_Identifier: // Identifier
         value.template destroy< Node * > ();
@@ -1590,7 +1622,7 @@ switch (yykind)
 
 
     /// Stored state numbers (used for stacks).
-    typedef signed char state_type;
+    typedef unsigned char state_type;
 
     /// The arguments of the error message.
     int yy_syntax_error_arguments_ (const context& yyctx,
@@ -1638,17 +1670,17 @@ switch (yykind)
     static const signed char yydefact_[];
 
     // YYPGOTO[NTERM-NUM].
-    static const signed char yypgoto_[];
+    static const short yypgoto_[];
 
     // YYDEFGOTO[NTERM-NUM].
-    static const signed char yydefgoto_[];
+    static const unsigned char yydefgoto_[];
 
     // YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
     // positive, shift that token.  If negative, reduce the rule whose
     // number is the opposite.  If YYTABLE_NINF, syntax error.
-    static const signed char yytable_[];
+    static const short yytable_[];
 
-    static const signed char yycheck_[];
+    static const short yycheck_[];
 
     // YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
     // state STATE-NUM.
@@ -1890,8 +1922,8 @@ switch (yykind)
     /// Constants.
     enum
     {
-      yylast_ = 271,     ///< Last index in yytable_.
-      yynnts_ = 12,  ///< Number of nonterminal symbols.
+      yylast_ = 335,     ///< Last index in yytable_.
+      yynnts_ = 20,  ///< Number of nonterminal symbols.
       yyfinal_ = 6 ///< Termination state number.
     };
 
@@ -1961,13 +1993,21 @@ switch (yykind)
     {
       case symbol_kind::S_root: // root
       case symbol_kind::S_Goal: // Goal
+      case symbol_kind::S_ClassDeclarationList: // ClassDeclarationList
       case symbol_kind::S_MainClass: // MainClass
+      case symbol_kind::S_StatementListM: // StatementListM
       case symbol_kind::S_ClassDeclaration: // ClassDeclaration
+      case symbol_kind::S_VarDeclarationCL: // VarDeclarationCL
+      case symbol_kind::S_MethodDeclarationCL: // MethodDeclarationCL
       case symbol_kind::S_MethodDeclaration: // MethodDeclaration
+      case symbol_kind::S_MethodDeclarationParams: // MethodDeclarationParams
+      case symbol_kind::S_MethodDeclarationBody: // MethodDeclarationBody
       case symbol_kind::S_VarDeclaration: // VarDeclaration
       case symbol_kind::S_Type: // Type
+      case symbol_kind::S_StatementMulti: // StatementMulti
       case symbol_kind::S_Statement: // Statement
       case symbol_kind::S_expression: // expression
+      case symbol_kind::S_ExpressionParams: // ExpressionParams
       case symbol_kind::S_factor: // factor
       case symbol_kind::S_Identifier: // Identifier
         value.copy< Node * > (YY_MOVE (that.value));
@@ -2047,13 +2087,21 @@ switch (yykind)
     {
       case symbol_kind::S_root: // root
       case symbol_kind::S_Goal: // Goal
+      case symbol_kind::S_ClassDeclarationList: // ClassDeclarationList
       case symbol_kind::S_MainClass: // MainClass
+      case symbol_kind::S_StatementListM: // StatementListM
       case symbol_kind::S_ClassDeclaration: // ClassDeclaration
+      case symbol_kind::S_VarDeclarationCL: // VarDeclarationCL
+      case symbol_kind::S_MethodDeclarationCL: // MethodDeclarationCL
       case symbol_kind::S_MethodDeclaration: // MethodDeclaration
+      case symbol_kind::S_MethodDeclarationParams: // MethodDeclarationParams
+      case symbol_kind::S_MethodDeclarationBody: // MethodDeclarationBody
       case symbol_kind::S_VarDeclaration: // VarDeclaration
       case symbol_kind::S_Type: // Type
+      case symbol_kind::S_StatementMulti: // StatementMulti
       case symbol_kind::S_Statement: // Statement
       case symbol_kind::S_expression: // expression
+      case symbol_kind::S_ExpressionParams: // ExpressionParams
       case symbol_kind::S_factor: // factor
       case symbol_kind::S_Identifier: // Identifier
         value.move< Node * > (YY_MOVE (s.value));
@@ -2165,7 +2213,7 @@ switch (yykind)
 
 
 } // yy
-#line 2169 "parser.tab.hh"
+#line 2217 "parser.tab.hh"
 
 
 
