@@ -46,7 +46,7 @@
 
 /* Specify types for non-terminals in the grammar */
 /* The type specifies the data type of the values associated with these non-terminals */
-%type <Node *> root expression factor Identifier MainClass Statement Type MethodDeclaration VarDeclaration ClassDeclaration Goal ClassDeclarationList StatementListM MethodDeclarationCL VarDeclarationCL MethodDeclarationParams MethodDeclarationBody StatementMulti ExpressionParams
+%type <Node *> root expression factor Identifier MainClass Statement Type MethodDeclaration VarDeclaration ClassDeclaration Goal ClassDeclarationList StatementListM MethodDeclarationCL VarDeclarationCL MethodDeclarationParams MethodDeclarationBody StatementMulti ExpressionParams OptionalReturn
 
 /* Grammar rules section */
 /* This section defines the production rules for the language being parsed */
@@ -131,15 +131,19 @@ MethodDeclarationCL:
     };
 
 
-MethodDeclaration: PUBLIC Type Identifier LP MethodDeclarationParams RP LBRACE MethodDeclarationBody RETURN expression SEMICOLON RBRACE { 
+MethodDeclaration: PUBLIC Type Identifier LP MethodDeclarationParams RP LBRACE MethodDeclarationBody OptionalReturn RBRACE { 
                 $$ = new Node("MethodDeclaration", "", yylineno);
                 $$->children.push_back($2);
                 $$->children.push_back($3);
                 $$->children.push_back($5);
                 $$->children.push_back($8);
-                $$->children.push_back($10);
                
           };
+
+OptionalReturn:
+      RETURN expression SEMICOLON { $$ = $2; }
+    | /* empty */ { $$ = nullptr; }
+    ;
 
 MethodDeclarationParams:
     { $$ = new Node("MethodDeclarationParams", "", yylineno); }
