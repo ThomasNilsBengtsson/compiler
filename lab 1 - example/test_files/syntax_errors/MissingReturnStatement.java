@@ -1,6 +1,7 @@
 public class MissingReturnStatement {
     public static void main(String[] args) {
-        System.out.println(new MyClass().test());
+        System.out.println((2 + 3) * (5 - 1));
+
     }
 }
 

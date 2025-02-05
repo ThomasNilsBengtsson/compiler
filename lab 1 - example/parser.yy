@@ -27,9 +27,22 @@
 %token END 0 "END of FILE"
 
 /* Operator precedence and associativity rules */
-/* Used to resolve ambiguities in parsing expressions See https://www.gnu.org/software/bison/manual/bison.html#Precedence-Decl */ 
-%left PLUSOP MINUSOP
+/* Used to resolve ambiguities in parsing expressions See   https://www.gnu.org/software/bison/manual/bison.html#Precedence-Decl */ 
+/* %left PLUSOP MINUSOP
 %left MULTOP
+%left DOT LP RP LBRACKET RBRACKET
+
+ */
+
+%right ASSIGN        
+%left OR             
+%left AND            
+%left EQ            
+%left LT GT         
+%left PLUSOP MINUSOP 
+%left MULTOP         
+%right NOT          
+%left DOT LBRACKET RBRACKET LP RP  
 
 /* Specify types for non-terminals in the grammar */
 /* The type specifies the data type of the values associated with these non-terminals */
@@ -246,30 +259,22 @@ expression: expression PLUSOP expression {
                 $$->children.push_back($1);
                 $$->children.push_back($3);
           }
-        /*| expression DOT IDENTIFIER LP (expression (COMMA expression)*)? RP { 
-                $$ = new Node("MethodCall", $3, yylineno);
-                $$->children.push_back($1);
-                if ($5) $$->children.push_back($5);
-          }
-
-*/
-/*         | NEW INT LBRACKET expression RBRACKET {
-                $$ = new Node("NewArrayExpression", "", yylineno);
-                $$->children.push_back($4);
-          }
-        | NEW IDENTIFIER LP RP {
-                $$ = new Node("NewObjectExpression", $2, yylineno);
-          } */
-  
 
         | expression LBRACKET expression RBRACKET {
                 $$ = new Node("ArrayAccess", "", yylineno);
                 $$->children.push_back($1);
                 $$->children.push_back($3);
           }
+
+        | expression DOT LENGTH {
+                $$ = new Node("ArrayLength", "", yylineno);
+                $$->children.push_back($1);
+          }  
         | expression DOT Identifier LP ExpressionParams RP {
                 $$ = new Node("MethodCall","", yylineno);
                 $$->children.push_back($1);
+                $$->children.push_back($3);
+                $$->children.push_back($5);
               
             }
         | INT { $$ = new Node("IntLiteral", $1, yylineno); }
@@ -278,9 +283,9 @@ expression: expression PLUSOP expression {
         | Identifier { $$ = $1; }
         | THIS { $$ = new Node("This", "", yylineno); }
         | NEW INT LBRACKET expression RBRACKET { $$ = new Node("NewArrayExpression", "", yylineno); $$->children.push_back($4); }
-      /*   | NEW Identifier LP RP { $$ = new Node("NewObjectExpression", $2, yylineno);} */
+        | NEW Identifier LP RP { $$ = new Node("NewObjectExpression", "", yylineno); $$->children.push_back($2); }
         | NOT expression { $$ = new Node("NotExpression", "", yylineno); $$->children.push_back($2); }
-        /* | LP expression RP { $$ = $2; } */ /* Denna görs redan i factor */
+/*         | LP expression RP { $$ = new Node("Expression", "", yylineno); $$->children.push_back($2);} Denna görs redan i factor  */
         | factor { $$ = $1; };
 
 /* SKa vi pusha identifiers? */
@@ -293,7 +298,8 @@ ExpressionParams:
             | ExpressionParams COMMA expression{
             $$ = $1;
             $$->children.push_back($3);
-            };
+            }; 
+ 
 
 factor:     INT           {  $$ = new Node("Int", $1, yylineno); /* printf("r5 ");  Here we create a leaf node Int. The value of the leaf node is $1 */}
             | LP expression RP { $$ = $2; /* printf("r6 ");  simply return the expression */}
