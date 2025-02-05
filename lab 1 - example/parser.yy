@@ -64,8 +64,9 @@ Goal:
       $$->children.push_back($2);
   };
 
-ClassDeclarationList: 
-    ClassDeclaration {
+ClassDeclarationList:
+    { $$ = new Node("ClassDeclarationList", "", yylineno); }
+    |ClassDeclaration {
       $$ = new Node("ClassDeclarationList", "", yylineno);
       $$ -> children.push_back($1);
     }
@@ -77,16 +78,18 @@ ClassDeclarationList:
 
 MainClass: PUBLIC CLASS Identifier LBRACE PUBLIC STATIC VOID MAIN LP STRING LBRACKET RBRACKET Identifier RP LBRACE Statement StatementListM RBRACE RBRACE { 
                 $$ = new Node("MainClass", "", yylineno);
-               /*  $$->children.push_back(new Node("Identifier", $3, yylineno));   vet inte ska man ha detta*/
+
                $$->children.push_back($3);
                 $$->children.push_back($13);
                 $$->children.push_back($16);
+                $$->children.push_back($17);
 
           } 
     ;
 
 StatementListM:
-    Statement{
+    { $$ = new Node("StatementList", "", yylineno); }
+    |Statement{
         $$ = new Node("StatementList", "", yylineno);
         $$->children.push_back($1);
     }
@@ -100,11 +103,14 @@ StatementListM:
 ClassDeclaration: CLASS Identifier LBRACE VarDeclarationCL MethodDeclarationCL RBRACE { 
             $$ = new Node("ClassDeclaration", "", yylineno);
             $$->children.push_back($2);
+            $$->children.push_back($4);
+            $$->children.push_back($5);
       }
 ;
 
 VarDeclarationCL:
-    VarDeclaration{
+    { $$ = new Node("VarDeclarationCL", "", yylineno); }
+    |VarDeclaration{
         $$ = new Node("VarDeclarationCL", "", yylineno);
         $$->children.push_back($1);
     }
@@ -114,7 +120,8 @@ VarDeclarationCL:
     };
 
 MethodDeclarationCL:
-    MethodDeclaration{
+    { $$ = new Node("MethodDeclarationCL", "", yylineno); }
+    |MethodDeclaration{
         $$ = new Node("MethodDeclarationCL", "", yylineno);
         $$->children.push_back($1);
     }
@@ -135,7 +142,8 @@ MethodDeclaration: PUBLIC Type Identifier LP MethodDeclarationParams RP LBRACE M
           };
 
 MethodDeclarationParams:
-    Type Identifier{
+    { $$ = new Node("MethodDeclarationParams", "", yylineno); }
+    |Type Identifier{
         $$ = new Node("MethodDeclarationParams", "", yylineno);
         $$->children.push_back($1);
         $$->children.push_back($2);
@@ -147,7 +155,8 @@ MethodDeclarationParams:
     };
 
 MethodDeclarationBody:
-    VarDeclaration{
+    { $$ = new Node("MethodDeclarationBody", "", yylineno); }
+    |VarDeclaration{
         $$ = new Node("MethodDeclarationBody", "", yylineno);
         $$->children.push_back($1);
     }
@@ -162,6 +171,11 @@ MethodDeclarationBody:
     | MethodDeclarationBody Statement{
         $$ = $1;
         $$->children.push_back($2);
+    }
+    | MethodDeclarationBody VarDeclaration Statement{
+        $$ = $1;
+        $$->children.push_back($2);
+        $$->children.push_back($3);
     };
 
 VarDeclaration: Type Identifier SEMICOLON { 
@@ -180,7 +194,8 @@ Type: INT LBRACKET RBRACKET { $$ = new Node("IntArray", "", yylineno); }
 
 
 StatementMulti:
-    Statement{
+    { $$ = new Node("StatementMulti", "", yylineno); }
+    |Statement{
         $$ = new Node("StatementMulti", "", yylineno);
         $$->children.push_back($1);
     }
@@ -291,7 +306,9 @@ expression: expression PLUSOP expression {
 /* SKa vi pusha identifiers? */
 
 ExpressionParams:
-            expression{
+            {$$ = new Node("ExpressionParams", "", yylineno);}
+            
+            |expression{
             $$ = new Node("ExpressionParams", "", yylineno);
             $$->children.push_back($1);
             }
