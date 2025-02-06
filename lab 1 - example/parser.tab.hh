@@ -399,7 +399,6 @@ namespace yy {
       // Statement
       // expression
       // ExpressionParams
-      // factor
       // Identifier
       char dummy1[sizeof (Node *)];
 
@@ -600,8 +599,7 @@ namespace yy {
         S_Statement = 56,                        // Statement
         S_expression = 57,                       // expression
         S_ExpressionParams = 58,                 // ExpressionParams
-        S_factor = 59,                           // factor
-        S_Identifier = 60                        // Identifier
+        S_Identifier = 59                        // Identifier
       };
     };
 
@@ -653,7 +651,6 @@ namespace yy {
       case symbol_kind::S_Statement: // Statement
       case symbol_kind::S_expression: // expression
       case symbol_kind::S_ExpressionParams: // ExpressionParams
-      case symbol_kind::S_factor: // factor
       case symbol_kind::S_Identifier: // Identifier
         value.move< Node * > (std::move (that.value));
         break;
@@ -785,7 +782,6 @@ switch (yykind)
       case symbol_kind::S_Statement: // Statement
       case symbol_kind::S_expression: // expression
       case symbol_kind::S_ExpressionParams: // ExpressionParams
-      case symbol_kind::S_factor: // factor
       case symbol_kind::S_Identifier: // Identifier
         value.template destroy< Node * > ();
         break;
@@ -1678,7 +1674,7 @@ switch (yykind)
     // YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
     // positive, shift that token.  If negative, reduce the rule whose
     // number is the opposite.  If YYTABLE_NINF, syntax error.
-    static const short yytable_[];
+    static const unsigned char yytable_[];
 
     static const short yycheck_[];
 
@@ -1922,8 +1918,8 @@ switch (yykind)
     /// Constants.
     enum
     {
-      yylast_ = 363,     ///< Last index in yytable_.
-      yynnts_ = 20,  ///< Number of nonterminal symbols.
+      yylast_ = 426,     ///< Last index in yytable_.
+      yynnts_ = 19,  ///< Number of nonterminal symbols.
       yyfinal_ = 6 ///< Termination state number.
     };
 
@@ -2008,7 +2004,6 @@ switch (yykind)
       case symbol_kind::S_Statement: // Statement
       case symbol_kind::S_expression: // expression
       case symbol_kind::S_ExpressionParams: // ExpressionParams
-      case symbol_kind::S_factor: // factor
       case symbol_kind::S_Identifier: // Identifier
         value.copy< Node * > (YY_MOVE (that.value));
         break;
@@ -2102,7 +2097,6 @@ switch (yykind)
       case symbol_kind::S_Statement: // Statement
       case symbol_kind::S_expression: // expression
       case symbol_kind::S_ExpressionParams: // ExpressionParams
-      case symbol_kind::S_factor: // factor
       case symbol_kind::S_Identifier: // Identifier
         value.move< Node * > (YY_MOVE (s.value));
         break;
@@ -2213,7 +2207,7 @@ switch (yykind)
 
 
 } // yy
-#line 2217 "parser.tab.hh"
+#line 2211 "parser.tab.hh"
 
 
 
