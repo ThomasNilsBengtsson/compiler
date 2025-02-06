@@ -6,6 +6,5 @@ public class InvalidPrintStatement {
 
 class MyClass {
     public boolean Init(){      
-        System.out.println(int); //@error - syntax (invalid print statement)
-    }
+        System.out.println(int); }//@error - syntax (invalid print statement)
 }

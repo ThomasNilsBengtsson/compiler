@@ -46,7 +46,7 @@
 
 /* Specify types for non-terminals in the grammar */
 /* The type specifies the data type of the values associated with these non-terminals */
-%type <Node *> root expression factor Identifier MainClass Statement Type MethodDeclaration VarDeclaration ClassDeclaration Goal ClassDeclarationList StatementListM MethodDeclarationCL VarDeclarationCL MethodDeclarationParams MethodDeclarationBody StatementMulti ExpressionParams OptionalReturn
+%type <Node *> root expression factor Identifier MainClass Statement Type MethodDeclaration VarDeclaration ClassDeclaration Goal ClassDeclarationList StatementListM MethodDeclarationCL VarDeclarationCL MethodDeclarationParams MethodDeclarationBody StatementMulti ExpressionParams
 
 /* Grammar rules section */
 /* This section defines the production rules for the language being parsed */
@@ -65,8 +65,7 @@ Goal:
   };
 
 ClassDeclarationList:
-    { $$ = new Node("ClassDeclarationList", "", yylineno); }
-    |ClassDeclaration {
+    ClassDeclaration {
       $$ = new Node("ClassDeclarationList", "", yylineno);
       $$ -> children.push_back($1);
     }
@@ -131,27 +130,37 @@ MethodDeclarationCL:
     };
 
 
-MethodDeclaration: PUBLIC Type Identifier LP MethodDeclarationParams RP LBRACE MethodDeclarationBody OptionalReturn RBRACE { 
+MethodDeclaration: PUBLIC Type Identifier LP MethodDeclarationParams RP LBRACE MethodDeclarationBody RETURN expression SEMICOLON RBRACE { 
                 $$ = new Node("MethodDeclaration", "", yylineno);
                 $$->children.push_back($2);
                 $$->children.push_back($3);
                 $$->children.push_back($5);
                 $$->children.push_back($8);
+                $$->children.push_back($10);
                
-          };
-
-OptionalReturn:
-      RETURN expression SEMICOLON { $$ = $2; }
-    | /* empty */ { $$ = nullptr; }
-    ;
+          }
+          | PUBLIC Type Identifier LP RP LBRACE MethodDeclarationBody RETURN expression SEMICOLON RBRACE { 
+                $$ = new Node("MethodDeclaration", "", yylineno);
+                $$->children.push_back($2);
+                $$->children.push_back($3);
+                $$->children.push_back($7);
+                $$->children.push_back($9);
+          }
 
 MethodDeclarationParams:
-    { $$ = new Node("MethodDeclarationParams", "", yylineno); }
-    |Type Identifier{
+    /* { $$ = new Node("MethodDeclarationParams", "", yylineno); } */
+    Type Identifier{
         $$ = new Node("MethodDeclarationParams", "", yylineno);
         $$->children.push_back($1);
         $$->children.push_back($2);
     }
+/*     |Type Identifier COMMA Type Identifier{
+        $$ = new Node("MethodDeclarationParams", "", yylineno);
+        $$->children.push_back($1);
+        $$->children.push_back($2);
+        $$->children.push_back($4);
+        $$->children.push_back($5);
+    } */
     | MethodDeclarationParams COMMA Type Identifier{
         $$ = $1;
         $$->children.push_back($3);
@@ -175,11 +184,6 @@ MethodDeclarationBody:
     | MethodDeclarationBody Statement{
         $$ = $1;
         $$->children.push_back($2);
-    }
-    | MethodDeclarationBody VarDeclaration Statement{
-        $$ = $1;
-        $$->children.push_back($2);
-        $$->children.push_back($3);
     };
 
 VarDeclaration: Type Identifier SEMICOLON { 
@@ -193,7 +197,7 @@ VarDeclaration: Type Identifier SEMICOLON {
 Type: INT LBRACKET RBRACKET { $$ = new Node("IntArray", "", yylineno); }
     | BOOLEAN { $$ = new Node("Boolean", "", yylineno); }
     | INT { $$ = new Node("Int", "", yylineno); }
-    | IDENTIFIER { $$ = new Node("Identifier", $1, yylineno); }
+    | Identifier { $$ = new Node("Identifier", "", yylineno); $$->children.push_back($1); }
     ;
 
 
@@ -208,8 +212,11 @@ StatementMulti:
         $$->children.push_back($2);
     };
 
+
+
 Statement: LBRACE StatementMulti RBRACE {
             $$ = new Node("Block", "", yylineno);
+            $$->children.push_back($2);
         }
         | IF LP expression RP Statement ELSE Statement { 
                 $$ = new Node("IfStatement", "", yylineno);
@@ -304,8 +311,9 @@ expression: expression PLUSOP expression {
         | NEW INT LBRACKET expression RBRACKET { $$ = new Node("NewArrayExpression", "", yylineno); $$->children.push_back($4); }
         | NEW Identifier LP RP { $$ = new Node("NewObjectExpression", "", yylineno); $$->children.push_back($2); }
         | NOT expression { $$ = new Node("NotExpression", "", yylineno); $$->children.push_back($2); }
-/*         | LP expression RP { $$ = new Node("Expression", "", yylineno); $$->children.push_back($2);} Denna görs redan i factor  */
-        | factor { $$ = $1; };
+         | LP expression RP { $$ = new Node("Expression", "", yylineno); $$->children.push_back($2);} 
+         | factor { $$ = $1; }
+        ;
 
 /* SKa vi pusha identifiers? */
 
@@ -322,10 +330,7 @@ ExpressionParams:
             }; 
  
 
-factor:     INT           {  $$ = new Node("Int", $1, yylineno); /* printf("r5 ");  Here we create a leaf node Int. The value of the leaf node is $1 */}
-            | LP expression RP { $$ = $2; /* printf("r6 ");  simply return the expression */}
-    ;
-
+factor: INT { $$ = new Node("IntLiteral", $1, yylineno); /* printf("r1 "); */}
 
 
 Identifier: IDENTIFIER { $$ = new Node("Identifier", $1, yylineno); /* printf("r7 "); */}
