@@ -391,13 +391,16 @@ namespace yy {
       // VarDeclarationCL
       // MethodDeclarationCL
       // MethodDeclaration
+      // MethodDeclarationParamsOpt
       // MethodDeclarationParams
+      // Parameter
       // MethodDeclarationBody
       // VarDeclaration
       // Type
       // StatementMulti
       // Statement
       // expression
+      // ExpressionParamsOpt
       // ExpressionParams
       // factor
       // Identifier
@@ -592,16 +595,19 @@ namespace yy {
         S_VarDeclarationCL = 48,                 // VarDeclarationCL
         S_MethodDeclarationCL = 49,              // MethodDeclarationCL
         S_MethodDeclaration = 50,                // MethodDeclaration
-        S_MethodDeclarationParams = 51,          // MethodDeclarationParams
-        S_MethodDeclarationBody = 52,            // MethodDeclarationBody
-        S_VarDeclaration = 53,                   // VarDeclaration
-        S_Type = 54,                             // Type
-        S_StatementMulti = 55,                   // StatementMulti
-        S_Statement = 56,                        // Statement
-        S_expression = 57,                       // expression
-        S_ExpressionParams = 58,                 // ExpressionParams
-        S_factor = 59,                           // factor
-        S_Identifier = 60                        // Identifier
+        S_MethodDeclarationParamsOpt = 51,       // MethodDeclarationParamsOpt
+        S_MethodDeclarationParams = 52,          // MethodDeclarationParams
+        S_Parameter = 53,                        // Parameter
+        S_MethodDeclarationBody = 54,            // MethodDeclarationBody
+        S_VarDeclaration = 55,                   // VarDeclaration
+        S_Type = 56,                             // Type
+        S_StatementMulti = 57,                   // StatementMulti
+        S_Statement = 58,                        // Statement
+        S_expression = 59,                       // expression
+        S_ExpressionParamsOpt = 60,              // ExpressionParamsOpt
+        S_ExpressionParams = 61,                 // ExpressionParams
+        S_factor = 62,                           // factor
+        S_Identifier = 63                        // Identifier
       };
     };
 
@@ -645,13 +651,16 @@ namespace yy {
       case symbol_kind::S_VarDeclarationCL: // VarDeclarationCL
       case symbol_kind::S_MethodDeclarationCL: // MethodDeclarationCL
       case symbol_kind::S_MethodDeclaration: // MethodDeclaration
+      case symbol_kind::S_MethodDeclarationParamsOpt: // MethodDeclarationParamsOpt
       case symbol_kind::S_MethodDeclarationParams: // MethodDeclarationParams
+      case symbol_kind::S_Parameter: // Parameter
       case symbol_kind::S_MethodDeclarationBody: // MethodDeclarationBody
       case symbol_kind::S_VarDeclaration: // VarDeclaration
       case symbol_kind::S_Type: // Type
       case symbol_kind::S_StatementMulti: // StatementMulti
       case symbol_kind::S_Statement: // Statement
       case symbol_kind::S_expression: // expression
+      case symbol_kind::S_ExpressionParamsOpt: // ExpressionParamsOpt
       case symbol_kind::S_ExpressionParams: // ExpressionParams
       case symbol_kind::S_factor: // factor
       case symbol_kind::S_Identifier: // Identifier
@@ -777,13 +786,16 @@ switch (yykind)
       case symbol_kind::S_VarDeclarationCL: // VarDeclarationCL
       case symbol_kind::S_MethodDeclarationCL: // MethodDeclarationCL
       case symbol_kind::S_MethodDeclaration: // MethodDeclaration
+      case symbol_kind::S_MethodDeclarationParamsOpt: // MethodDeclarationParamsOpt
       case symbol_kind::S_MethodDeclarationParams: // MethodDeclarationParams
+      case symbol_kind::S_Parameter: // Parameter
       case symbol_kind::S_MethodDeclarationBody: // MethodDeclarationBody
       case symbol_kind::S_VarDeclaration: // VarDeclaration
       case symbol_kind::S_Type: // Type
       case symbol_kind::S_StatementMulti: // StatementMulti
       case symbol_kind::S_Statement: // Statement
       case symbol_kind::S_expression: // expression
+      case symbol_kind::S_ExpressionParamsOpt: // ExpressionParamsOpt
       case symbol_kind::S_ExpressionParams: // ExpressionParams
       case symbol_kind::S_factor: // factor
       case symbol_kind::S_Identifier: // Identifier
@@ -1922,8 +1934,8 @@ switch (yykind)
     /// Constants.
     enum
     {
-      yylast_ = 429,     ///< Last index in yytable_.
-      yynnts_ = 20,  ///< Number of nonterminal symbols.
+      yylast_ = 369,     ///< Last index in yytable_.
+      yynnts_ = 23,  ///< Number of nonterminal symbols.
       yyfinal_ = 6 ///< Termination state number.
     };
 
@@ -2000,13 +2012,16 @@ switch (yykind)
       case symbol_kind::S_VarDeclarationCL: // VarDeclarationCL
       case symbol_kind::S_MethodDeclarationCL: // MethodDeclarationCL
       case symbol_kind::S_MethodDeclaration: // MethodDeclaration
+      case symbol_kind::S_MethodDeclarationParamsOpt: // MethodDeclarationParamsOpt
       case symbol_kind::S_MethodDeclarationParams: // MethodDeclarationParams
+      case symbol_kind::S_Parameter: // Parameter
       case symbol_kind::S_MethodDeclarationBody: // MethodDeclarationBody
       case symbol_kind::S_VarDeclaration: // VarDeclaration
       case symbol_kind::S_Type: // Type
       case symbol_kind::S_StatementMulti: // StatementMulti
       case symbol_kind::S_Statement: // Statement
       case symbol_kind::S_expression: // expression
+      case symbol_kind::S_ExpressionParamsOpt: // ExpressionParamsOpt
       case symbol_kind::S_ExpressionParams: // ExpressionParams
       case symbol_kind::S_factor: // factor
       case symbol_kind::S_Identifier: // Identifier
@@ -2094,13 +2109,16 @@ switch (yykind)
       case symbol_kind::S_VarDeclarationCL: // VarDeclarationCL
       case symbol_kind::S_MethodDeclarationCL: // MethodDeclarationCL
       case symbol_kind::S_MethodDeclaration: // MethodDeclaration
+      case symbol_kind::S_MethodDeclarationParamsOpt: // MethodDeclarationParamsOpt
       case symbol_kind::S_MethodDeclarationParams: // MethodDeclarationParams
+      case symbol_kind::S_Parameter: // Parameter
       case symbol_kind::S_MethodDeclarationBody: // MethodDeclarationBody
       case symbol_kind::S_VarDeclaration: // VarDeclaration
       case symbol_kind::S_Type: // Type
       case symbol_kind::S_StatementMulti: // StatementMulti
       case symbol_kind::S_Statement: // Statement
       case symbol_kind::S_expression: // expression
+      case symbol_kind::S_ExpressionParamsOpt: // ExpressionParamsOpt
       case symbol_kind::S_ExpressionParams: // ExpressionParams
       case symbol_kind::S_factor: // factor
       case symbol_kind::S_Identifier: // Identifier
@@ -2213,7 +2231,7 @@ switch (yykind)
 
 
 } // yy
-#line 2217 "parser.tab.hh"
+#line 2235 "parser.tab.hh"
 
 
 

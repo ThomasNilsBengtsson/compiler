@@ -46,7 +46,7 @@
 
 /* Specify types for non-terminals in the grammar */
 /* The type specifies the data type of the values associated with these non-terminals */
-%type <Node *> root expression factor Identifier MainClass Statement Type MethodDeclaration VarDeclaration ClassDeclaration Goal ClassDeclarationList StatementListM MethodDeclarationCL VarDeclarationCL MethodDeclarationParams MethodDeclarationBody StatementMulti ExpressionParams
+%type <Node *> root expression factor Identifier MainClass Statement Type MethodDeclaration VarDeclaration ClassDeclaration Goal ClassDeclarationList StatementListM MethodDeclarationCL VarDeclarationCL MethodDeclarationParams MethodDeclarationBody StatementMulti ExpressionParams MethodDeclarationParamsOpt Parameter ExpressionParamsOpt
 
 /* Grammar rules section */
 /* This section defines the production rules for the language being parsed */
@@ -130,7 +130,7 @@ MethodDeclarationCL:
     };
 
 
-MethodDeclaration: PUBLIC Type Identifier LP MethodDeclarationParams RP LBRACE MethodDeclarationBody RETURN expression SEMICOLON RBRACE { 
+MethodDeclaration: PUBLIC Type Identifier LP MethodDeclarationParamsOpt RP LBRACE MethodDeclarationBody RETURN expression SEMICOLON RBRACE { 
                 $$ = new Node("MethodDeclaration", "", yylineno);
                 $$->children.push_back($2);
                 $$->children.push_back($3);
@@ -139,33 +139,38 @@ MethodDeclaration: PUBLIC Type Identifier LP MethodDeclarationParams RP LBRACE M
                 $$->children.push_back($10);
                
           }
-          | PUBLIC Type Identifier LP RP LBRACE MethodDeclarationBody RETURN expression SEMICOLON RBRACE { 
+          | /*PUBLIC Type Identifier LP RP LBRACE MethodDeclarationBody RETURN expression SEMICOLON RBRACE { 
                 $$ = new Node("MethodDeclaration", "", yylineno);
                 $$->children.push_back($2);
                 $$->children.push_back($3);
                 $$->children.push_back($7);
                 $$->children.push_back($9);
-          }
+          }*/
+
+MethodDeclarationParamsOpt:
+    { $$ = new Node("MethodDeclarationParamsOpt", "", yylineno); }
+    |MethodDeclarationParams{
+        $$ = new Node("MethodDeclarationParamsOpt", "", yylineno);
+        $$->children.push_back($1);
+    };
 
 MethodDeclarationParams:
-    /* { $$ = new Node("MethodDeclarationParams", "", yylineno); } */
-    Type Identifier{
-        $$ = new Node("MethodDeclarationParams", "", yylineno);
-        $$->children.push_back($1);
-        $$->children.push_back($2);
+   Parameter { $$ = new Node("ParameterList", "", yylineno); $$->children.push_back($1); }
+  | MethodDeclarationParams COMMA Parameter { 
+          $$ = $1; 
+          $$->children.push_back($3); 
+      }
+;
+
+
+Parameter:
+    Type Identifier {
+         $$ = new Node("Parameter", "", yylineno);
+         $$->children.push_back($1);
+         $$->children.push_back($2);
     }
-/*     |Type Identifier COMMA Type Identifier{
-        $$ = new Node("MethodDeclarationParams", "", yylineno);
-        $$->children.push_back($1);
-        $$->children.push_back($2);
-        $$->children.push_back($4);
-        $$->children.push_back($5);
-    } */
-    | MethodDeclarationParams COMMA Type Identifier{
-        $$ = $1;
-        $$->children.push_back($3);
-        $$->children.push_back($4);
-    };
+    ;
+
 
 MethodDeclarationBody:
     { $$ = new Node("MethodDeclarationBody", "", yylineno); }
@@ -296,7 +301,7 @@ expression: expression PLUSOP expression {
                 $$ = new Node("ArrayLength", "", yylineno);
                 $$->children.push_back($1);
           }  
-        | expression DOT Identifier LP ExpressionParams RP {
+        | expression DOT Identifier LP ExpressionParamsOpt RP {
                 $$ = new Node("MethodCall","", yylineno);
                 $$->children.push_back($1);
                 $$->children.push_back($3);
@@ -317,10 +322,15 @@ expression: expression PLUSOP expression {
 
 /* SKa vi pusha identifiers? */
 
-ExpressionParams:
-            {$$ = new Node("ExpressionParams", "", yylineno);}
-            
-            |expression{
+ExpressionParamsOpt: 
+            { $$ = new Node("ExpressionParamsOpt", "", yylineno); }
+            | ExpressionParams{
+            $$ = new Node("ExpressionParamsOpt", "", yylineno);
+            $$->children.push_back($1);
+            };
+
+ExpressionParams:            
+            expression{
             $$ = new Node("ExpressionParams", "", yylineno);
             $$->children.push_back($1);
             }
