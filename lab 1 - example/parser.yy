@@ -229,6 +229,11 @@ Statement: LBRACE StatementMulti RBRACE {
                 $$->children.push_back($5);
                 $$->children.push_back($7);
           }
+        | IF LP expression RP Statement { 
+                $$ = new Node("IfStatement", "", yylineno);
+                $$->children.push_back($3);
+                $$->children.push_back($5);
+          }
         | WHILE LP expression RP Statement { 
                 $$ = new Node("WhileStatement", "", yylineno);
                 $$->children.push_back($3);
