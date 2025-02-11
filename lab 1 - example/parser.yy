@@ -57,10 +57,13 @@ root:      Goal {root = $$;};/*  mainclass {root = $2;}; */
 
 Goal: 
   MainClass END{
-      $$ = $1; /* Måste kanske sätta root som root = $$ */                  
+
+     $$ = new Node("Goal", "", yylineno);   
+     $$->children.push_back($1);    
   }
   | MainClass ClassDeclarationList END{
-      $$ = $1;
+    $$ = new Node("Goal", "", yylineno);
+    $$->children.push_back($1);
       $$->children.push_back($2);
   };
 
@@ -334,7 +337,7 @@ ExpressionParams:
             }
             | ExpressionParams COMMA expression{
             $$ = $1;
-            $$->children.push_back($3);
+            $$->children.push_back($3); 
             }; 
  
 
