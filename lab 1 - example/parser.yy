@@ -139,13 +139,6 @@ MethodDeclaration: PUBLIC Type Identifier LP MethodDeclarationParamsOpt RP LBRAC
                 $$->children.push_back($10);
                
           }
-          | /*PUBLIC Type Identifier LP RP LBRACE MethodDeclarationBody RETURN expression SEMICOLON RBRACE { 
-                $$ = new Node("MethodDeclaration", "", yylineno);
-                $$->children.push_back($2);
-                $$->children.push_back($3);
-                $$->children.push_back($7);
-                $$->children.push_back($9);
-          }*/
 
 MethodDeclarationParamsOpt:
     { $$ = new Node("MethodDeclarationParamsOpt", "", yylineno); }
@@ -313,7 +306,7 @@ expression: expression PLUSOP expression {
                 $$->children.push_back($5);
               
             }
-        | INT { $$ = new Node("IntLiteral", $1, yylineno); }
+/*         | INT { $$ = new Node("IntLiteral", $1, yylineno); } */
         | TRUE { $$ = new Node("BooleanLiteral", "true", yylineno); }
         | FALSE { $$ = new Node("BooleanLiteral", "false", yylineno); }
         | Identifier { $$ = $1; }
