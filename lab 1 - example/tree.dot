@@ -1,0 +1,113 @@
+digraph {
+n0 [label="Goal:"];
+n1 [label="MainClass:"];
+n2 [label="Identifier:DanglingElse"];
+n1 -> n2
+n3 [label="Identifier:a"];
+n1 -> n3
+n4 [label="PrintStatement:"];
+n5 [label="MethodCall:"];
+n6 [label="NewObjectExpression:"];
+n7 [label="Identifier:AST"];
+n6 -> n7
+n5 -> n6
+n8 [label="Identifier:TestIfElse"];
+n5 -> n8
+n9 [label="ExpressionParamsOpt:"];
+n5 -> n9
+n4 -> n5
+n1 -> n4
+n10 [label="StatementList:"];
+n1 -> n10
+n0 -> n1
+n11 [label="ClassDeclarationList:"];
+n12 [label="ClassDeclaration:"];
+n13 [label="Identifier:AST"];
+n12 -> n13
+n14 [label="VarDeclarationCL:"];
+n12 -> n14
+n15 [label="MethodDeclarationCL:"];
+n16 [label="MethodDeclaration:"];
+n17 [label="Int:"];
+n16 -> n17
+n18 [label="Identifier:TestIfElse"];
+n16 -> n18
+n19 [label="MethodDeclarationParamsOpt:"];
+n16 -> n19
+n20 [label="MethodDeclarationBody:"];
+n21 [label="VarDeclaration:"];
+n22 [label="Boolean:"];
+n21 -> n22
+n23 [label="Identifier:A"];
+n21 -> n23
+n20 -> n21
+n24 [label="VarDeclaration:"];
+n25 [label="Boolean:"];
+n24 -> n25
+n26 [label="Identifier:B"];
+n24 -> n26
+n20 -> n24
+n27 [label="AssignStatement:"];
+n28 [label="Identifier:A"];
+n27 -> n28
+n29 [label="BooleanLiteral:false"];
+n27 -> n29
+n20 -> n27
+n30 [label="AssignStatement:"];
+n31 [label="Identifier:B"];
+n30 -> n31
+n32 [label="BooleanLiteral:true"];
+n30 -> n32
+n20 -> n30
+n33 [label="IfStatement:"];
+n34 [label="Identifier:A"];
+n33 -> n34
+n35 [label="IfStatement:"];
+n36 [label="Identifier:B"];
+n35 -> n36
+n37 [label="AssignStatement:"];
+n38 [label="Identifier:B"];
+n37 -> n38
+n39 [label="BooleanLiteral:true"];
+n37 -> n39
+n35 -> n37
+n40 [label="AssignStatement:"];
+n41 [label="Identifier:B"];
+n40 -> n41
+n42 [label="BooleanLiteral:false"];
+n40 -> n42
+n35 -> n40
+n33 -> n35
+n20 -> n33
+n43 [label="IfStatement:"];
+n44 [label="Identifier:A"];
+n43 -> n44
+n45 [label="Block:"];
+n46 [label="StatementMulti:"];
+n47 [label="IfStatement:"];
+n48 [label="Identifier:B"];
+n47 -> n48
+n49 [label="AssignStatement:"];
+n50 [label="Identifier:B"];
+n49 -> n50
+n51 [label="BooleanLiteral:true"];
+n49 -> n51
+n47 -> n49
+n52 [label="AssignStatement:"];
+n53 [label="Identifier:A"];
+n52 -> n53
+n54 [label="BooleanLiteral:false"];
+n52 -> n54
+n47 -> n52
+n46 -> n47
+n45 -> n46
+n43 -> n45
+n20 -> n43
+n16 -> n20
+n55 [label="IntLiteral:1"];
+n16 -> n55
+n15 -> n16
+n12 -> n15
+n11 -> n12
+n0 -> n11
+}

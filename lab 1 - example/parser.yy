@@ -51,7 +51,7 @@
 /* Grammar rules section */
 /* This section defines the production rules for the language being parsed */
 %%
-root:      Goal {root = $$;};/*  mainclass {root = $2;}; */
+root:      Goal {root = $1;};/*  mainclass {root = $2;}; */
 
 
 
