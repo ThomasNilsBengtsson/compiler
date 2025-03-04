@@ -7,10 +7,18 @@
 #include <unordered_map>
 using namespace std;
 
+enum class IdentifierKind
+{
+    CLASS,
+    METHOD,
+    VARIABLE
+};
+
 struct Symbol
 {
     string name;
     string type;
+    IdentifierKind kind;
     int scopeLevel;
 };
 
@@ -32,7 +40,7 @@ public:
     SymbolTable();
     void enterScope();
     void exitScope();
-    void addSymbol(string name, string type);
+    void addSymbol(string name, string type, IdentifierKind kind);
     Symbol *findSymbol(string name);
     void printTable(ScopeNode *scope, int depth = 0);
     ScopeNode *getCurrentScope() { return currentScope; };

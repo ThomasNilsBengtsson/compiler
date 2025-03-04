@@ -20,7 +20,7 @@ void SymbolTable::exitScope()
     }
 }
 
-void SymbolTable::addSymbol(std::string name, std::string type)
+void SymbolTable::addSymbol(std::string name, std::string type, IdentifierKind kind)
 {
     currentScope->symbols[name] = {name, type, (int)currentScope->symbols.size()};
 }
