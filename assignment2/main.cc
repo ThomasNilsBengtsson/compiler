@@ -1,5 +1,6 @@
 #include <iostream>
 #include "parser.tab.hh"
+#include "symbol_table.h"
 
 extern Node *root;
 extern FILE *yyin;
@@ -63,6 +64,10 @@ int main(int argc, char **argv)
 			{
 				root->print_tree();
 				root->generate_tree();
+				SymbolTable ST;
+				ST.buildSymbolTable(root, ST);
+				printf("\n\nSymbol Table: \n");
+				ST.printTable(ST.getCurrentScope());
 			}
 			catch (...)
 			{

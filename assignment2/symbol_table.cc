@@ -22,7 +22,7 @@ void SymbolTable::exitScope()
 
 void SymbolTable::addSymbol(std::string name, std::string type, IdentifierKind kind)
 {
-    currentScope->symbols[name] = {name, type, (int)currentScope->symbols.size()};
+    currentScope->symbols[name] = {name, type, kind, (int)currentScope->symbols.size()};
 }
 
 Symbol *SymbolTable::findSymbol(std::string name)
@@ -51,5 +51,31 @@ void SymbolTable::printTable(ScopeNode *scope, int depth)
     for (auto child : scope->children)
     {
         printTable(child, depth + 1);
+    }
+}
+
+void SymbolTable::buildSymbolTable(Node *node, SymbolTable &symbolTable)
+{
+    if (node->type == "ClassDeclaration")
+    {
+        symbolTable.addSymbol(node->value, "class", IdentifierKind::CLASS);
+        symbolTable.enterScope();
+    }
+    else if (node->type == "MethodDeclaration")
+    {
+        symbolTable.addSymbol(node->value, "method", IdentifierKind::METHOD);
+        symbolTable.enterScope();
+    }
+    else if (node->type == "VariableDeclaration")
+    {
+        symbolTable.addSymbol(node->value, "variable", IdentifierKind::VARIABLE);
+    }
+    for(auto child : node->children)
+    {
+        buildSymbolTable(child, symbolTable);
+    }
+    if (node->type == "ClassDeclaration" || node->type == "MethodDeclaration")
+    {
+        symbolTable.exitScope();
     }
 }

@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include "Node.h"
 using namespace std;
 
 enum class IdentifierKind
@@ -44,5 +45,6 @@ public:
     Symbol *findSymbol(string name);
     void printTable(ScopeNode *scope, int depth = 0);
     ScopeNode *getCurrentScope() { return currentScope; };
+    void buildSymbolTable(Node* node, SymbolTable& symbolTable);
 };
 #endif
