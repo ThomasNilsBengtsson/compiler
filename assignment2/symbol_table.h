@@ -20,7 +20,7 @@ struct Symbol
     string name;
     string type;
     IdentifierKind kind;
-    int scopeLevel;
+    string scopeLevel;
 };
 
 class ScopeNode
@@ -36,10 +36,11 @@ class SymbolTable
 {
 private:
     ScopeNode *currentScope;
+    string currentScopeName;
 
 public:
     SymbolTable();
-    void enterScope();
+    void enterScope(string scopeName);
     void exitScope();
     void addSymbol(string name, string type, IdentifierKind kind);
     Symbol *findSymbol(string name);

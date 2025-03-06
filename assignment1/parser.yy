@@ -145,6 +145,7 @@ MethodDeclaration: PUBLIC Type Identifier LP MethodDeclarationParamsOpt RP LBRAC
 
 MethodDeclarationParamsOpt:
     { $$ = new Node("MethodDeclarationParamsOpt", "", yylineno); }
+    //%empty
     |MethodDeclarationParams{
         $$ = new Node("MethodDeclarationParamsOpt", "", yylineno);
         $$->children.push_back($1);

@@ -1,113 +1,519 @@
 digraph {
 n0 [label="Goal:"];
 n1 [label="MainClass:"];
-n2 [label="Identifier:DanglingElse"];
+n2 [label="Identifier:BubbleSort"];
 n1 -> n2
 n3 [label="Identifier:a"];
 n1 -> n3
 n4 [label="PrintStatement:"];
 n5 [label="MethodCall:"];
 n6 [label="NewObjectExpression:"];
-n7 [label="Identifier:AST"];
+n7 [label="Identifier:BBS"];
 n6 -> n7
 n5 -> n6
-n8 [label="Identifier:TestIfElse"];
+n8 [label="Identifier:Start"];
 n5 -> n8
 n9 [label="ExpressionParamsOpt:"];
+n10 [label="ExpressionParams:"];
+n11 [label="IntLiteral:10"];
+n10 -> n11
+n9 -> n10
 n5 -> n9
 n4 -> n5
 n1 -> n4
-n10 [label="StatementList:"];
-n1 -> n10
+n12 [label="StatementList:"];
+n1 -> n12
 n0 -> n1
-n11 [label="ClassDeclarationList:"];
-n12 [label="ClassDeclaration:"];
-n13 [label="Identifier:AST"];
-n12 -> n13
-n14 [label="VarDeclarationCL:"];
-n12 -> n14
-n15 [label="MethodDeclarationCL:"];
-n16 [label="MethodDeclaration:"];
-n17 [label="Int:"];
+n13 [label="ClassDeclarationList:"];
+n14 [label="ClassDeclaration:"];
+n15 [label="Identifier:BBS"];
+n14 -> n15
+n16 [label="VarDeclarationCL:"];
+n17 [label="VarDeclaration:"];
+n18 [label="IntArray:"];
+n17 -> n18
+n19 [label="Identifier:number"];
+n17 -> n19
 n16 -> n17
-n18 [label="Identifier:TestIfElse"];
-n16 -> n18
-n19 [label="MethodDeclarationParamsOpt:"];
-n16 -> n19
-n20 [label="MethodDeclarationBody:"];
-n21 [label="VarDeclaration:"];
-n22 [label="Boolean:"];
-n21 -> n22
-n23 [label="Identifier:A"];
-n21 -> n23
+n20 [label="VarDeclaration:"];
+n21 [label="Int:"];
 n20 -> n21
-n24 [label="VarDeclaration:"];
-n25 [label="Boolean:"];
-n24 -> n25
-n26 [label="Identifier:B"];
-n24 -> n26
-n20 -> n24
-n27 [label="AssignStatement:"];
-n28 [label="Identifier:A"];
-n27 -> n28
-n29 [label="BooleanLiteral:false"];
-n27 -> n29
-n20 -> n27
-n30 [label="AssignStatement:"];
-n31 [label="Identifier:B"];
-n30 -> n31
-n32 [label="BooleanLiteral:true"];
-n30 -> n32
-n20 -> n30
-n33 [label="IfStatement:"];
-n34 [label="Identifier:A"];
-n33 -> n34
-n35 [label="IfStatement:"];
-n36 [label="Identifier:B"];
-n35 -> n36
-n37 [label="AssignStatement:"];
-n38 [label="Identifier:B"];
-n37 -> n38
-n39 [label="BooleanLiteral:true"];
-n37 -> n39
-n35 -> n37
-n40 [label="AssignStatement:"];
-n41 [label="Identifier:B"];
-n40 -> n41
-n42 [label="BooleanLiteral:false"];
-n40 -> n42
-n35 -> n40
-n33 -> n35
-n20 -> n33
-n43 [label="IfStatement:"];
-n44 [label="Identifier:A"];
-n43 -> n44
-n45 [label="Block:"];
-n46 [label="StatementMulti:"];
-n47 [label="IfStatement:"];
-n48 [label="Identifier:B"];
-n47 -> n48
-n49 [label="AssignStatement:"];
-n50 [label="Identifier:B"];
-n49 -> n50
-n51 [label="BooleanLiteral:true"];
-n49 -> n51
-n47 -> n49
-n52 [label="AssignStatement:"];
-n53 [label="Identifier:A"];
-n52 -> n53
-n54 [label="BooleanLiteral:false"];
-n52 -> n54
-n47 -> n52
-n46 -> n47
-n45 -> n46
-n43 -> n45
-n20 -> n43
+n22 [label="Identifier:size"];
+n20 -> n22
 n16 -> n20
-n55 [label="IntLiteral:1"];
-n16 -> n55
-n15 -> n16
-n12 -> n15
-n11 -> n12
-n0 -> n11
+n14 -> n16
+n23 [label="MethodDeclarationCL:"];
+n24 [label="MethodDeclaration:"];
+n25 [label="Int:"];
+n24 -> n25
+n26 [label="Identifier:Start"];
+n24 -> n26
+n27 [label="MethodDeclarationParamsOpt:"];
+n28 [label="ParameterList:"];
+n29 [label="Parameter:"];
+n30 [label="Int:"];
+n29 -> n30
+n31 [label="Identifier:sz"];
+n29 -> n31
+n28 -> n29
+n27 -> n28
+n24 -> n27
+n32 [label="MethodDeclarationBody:"];
+n33 [label="VarDeclaration:"];
+n34 [label="Int:"];
+n33 -> n34
+n35 [label="Identifier:aux01"];
+n33 -> n35
+n32 -> n33
+n36 [label="AssignStatement:"];
+n37 [label="Identifier:aux01"];
+n36 -> n37
+n38 [label="MethodCall:"];
+n39 [label="This:"];
+n38 -> n39
+n40 [label="Identifier:Init"];
+n38 -> n40
+n41 [label="ExpressionParamsOpt:"];
+n42 [label="ExpressionParams:"];
+n43 [label="Identifier:sz"];
+n42 -> n43
+n41 -> n42
+n38 -> n41
+n36 -> n38
+n32 -> n36
+n44 [label="AssignStatement:"];
+n45 [label="Identifier:aux01"];
+n44 -> n45
+n46 [label="MethodCall:"];
+n47 [label="This:"];
+n46 -> n47
+n48 [label="Identifier:Print"];
+n46 -> n48
+n49 [label="ExpressionParamsOpt:"];
+n46 -> n49
+n44 -> n46
+n32 -> n44
+n50 [label="PrintStatement:"];
+n51 [label="IntLiteral:99999"];
+n50 -> n51
+n32 -> n50
+n52 [label="AssignStatement:"];
+n53 [label="Identifier:aux01"];
+n52 -> n53
+n54 [label="MethodCall:"];
+n55 [label="This:"];
+n54 -> n55
+n56 [label="Identifier:Sort"];
+n54 -> n56
+n57 [label="ExpressionParamsOpt:"];
+n54 -> n57
+n52 -> n54
+n32 -> n52
+n58 [label="AssignStatement:"];
+n59 [label="Identifier:aux01"];
+n58 -> n59
+n60 [label="MethodCall:"];
+n61 [label="This:"];
+n60 -> n61
+n62 [label="Identifier:Print"];
+n60 -> n62
+n63 [label="ExpressionParamsOpt:"];
+n60 -> n63
+n58 -> n60
+n32 -> n58
+n24 -> n32
+n64 [label="IntLiteral:0"];
+n24 -> n64
+n23 -> n24
+n65 [label="MethodDeclaration:"];
+n66 [label="Int:"];
+n65 -> n66
+n67 [label="Identifier:Sort"];
+n65 -> n67
+n68 [label="MethodDeclarationParamsOpt:"];
+n65 -> n68
+n69 [label="MethodDeclarationBody:"];
+n70 [label="VarDeclaration:"];
+n71 [label="Int:"];
+n70 -> n71
+n72 [label="Identifier:i"];
+n70 -> n72
+n69 -> n70
+n73 [label="AssignStatement:"];
+n74 [label="Identifier:i"];
+n73 -> n74
+n75 [label="SubExpression:"];
+n76 [label="Identifier:size"];
+n75 -> n76
+n77 [label="IntLiteral:1"];
+n75 -> n77
+n73 -> n75
+n69 -> n73
+n78 [label="VarDeclaration:"];
+n79 [label="Int:"];
+n78 -> n79
+n80 [label="Identifier:aux02"];
+n78 -> n80
+n69 -> n78
+n81 [label="AssignStatement:"];
+n82 [label="Identifier:aux02"];
+n81 -> n82
+n83 [label="SubExpression:"];
+n84 [label="IntLiteral:0"];
+n83 -> n84
+n85 [label="IntLiteral:1"];
+n83 -> n85
+n81 -> n83
+n69 -> n81
+n86 [label="VarDeclaration:"];
+n87 [label="Int:"];
+n86 -> n87
+n88 [label="Identifier:aux04"];
+n86 -> n88
+n69 -> n86
+n89 [label="VarDeclaration:"];
+n90 [label="Int:"];
+n89 -> n90
+n91 [label="Identifier:aux05"];
+n89 -> n91
+n69 -> n89
+n92 [label="VarDeclaration:"];
+n93 [label="Int:"];
+n92 -> n93
+n94 [label="Identifier:aux06"];
+n92 -> n94
+n69 -> n92
+n95 [label="VarDeclaration:"];
+n96 [label="Int:"];
+n95 -> n96
+n97 [label="Identifier:aux07"];
+n95 -> n97
+n69 -> n95
+n98 [label="VarDeclaration:"];
+n99 [label="Int:"];
+n98 -> n99
+n100 [label="Identifier:j"];
+n98 -> n100
+n69 -> n98
+n101 [label="VarDeclaration:"];
+n102 [label="Int:"];
+n101 -> n102
+n103 [label="Identifier:t"];
+n101 -> n103
+n69 -> n101
+n104 [label="WhileStatement:"];
+n105 [label="LtExpression:"];
+n106 [label="Identifier:aux02"];
+n105 -> n106
+n107 [label="Identifier:i"];
+n105 -> n107
+n104 -> n105
+n108 [label="Block:"];
+n109 [label="StatementMulti:"];
+n110 [label="AssignStatement:"];
+n111 [label="Identifier:j"];
+n110 -> n111
+n112 [label="IntLiteral:1"];
+n110 -> n112
+n109 -> n110
+n113 [label="WhileStatement:"];
+n114 [label="LtExpression:"];
+n115 [label="Identifier:j"];
+n114 -> n115
+n116 [label="Expression:"];
+n117 [label="AddExpression:"];
+n118 [label="Identifier:i"];
+n117 -> n118
+n119 [label="IntLiteral:1"];
+n117 -> n119
+n116 -> n117
+n114 -> n116
+n113 -> n114
+n120 [label="Block:"];
+n121 [label="StatementMulti:"];
+n122 [label="AssignStatement:"];
+n123 [label="Identifier:aux07"];
+n122 -> n123
+n124 [label="SubExpression:"];
+n125 [label="Identifier:j"];
+n124 -> n125
+n126 [label="IntLiteral:1"];
+n124 -> n126
+n122 -> n124
+n121 -> n122
+n127 [label="AssignStatement:"];
+n128 [label="Identifier:aux04"];
+n127 -> n128
+n129 [label="ArrayAccess:"];
+n130 [label="Identifier:number"];
+n129 -> n130
+n131 [label="Identifier:aux07"];
+n129 -> n131
+n127 -> n129
+n121 -> n127
+n132 [label="AssignStatement:"];
+n133 [label="Identifier:aux05"];
+n132 -> n133
+n134 [label="ArrayAccess:"];
+n135 [label="Identifier:number"];
+n134 -> n135
+n136 [label="Identifier:j"];
+n134 -> n136
+n132 -> n134
+n121 -> n132
+n137 [label="IfStatement:"];
+n138 [label="LtExpression:"];
+n139 [label="Identifier:aux05"];
+n138 -> n139
+n140 [label="Identifier:aux04"];
+n138 -> n140
+n137 -> n138
+n141 [label="Block:"];
+n142 [label="StatementMulti:"];
+n143 [label="AssignStatement:"];
+n144 [label="Identifier:aux06"];
+n143 -> n144
+n145 [label="SubExpression:"];
+n146 [label="Identifier:j"];
+n145 -> n146
+n147 [label="IntLiteral:1"];
+n145 -> n147
+n143 -> n145
+n142 -> n143
+n148 [label="AssignStatement:"];
+n149 [label="Identifier:t"];
+n148 -> n149
+n150 [label="ArrayAccess:"];
+n151 [label="Identifier:number"];
+n150 -> n151
+n152 [label="Identifier:aux06"];
+n150 -> n152
+n148 -> n150
+n142 -> n148
+n153 [label="ArrayAssignStatement:"];
+n154 [label="Identifier:number"];
+n153 -> n154
+n155 [label="Identifier:aux06"];
+n153 -> n155
+n156 [label="ArrayAccess:"];
+n157 [label="Identifier:number"];
+n156 -> n157
+n158 [label="Identifier:j"];
+n156 -> n158
+n153 -> n156
+n142 -> n153
+n159 [label="ArrayAssignStatement:"];
+n160 [label="Identifier:number"];
+n159 -> n160
+n161 [label="Identifier:j"];
+n159 -> n161
+n162 [label="Identifier:t"];
+n159 -> n162
+n142 -> n159
+n141 -> n142
+n137 -> n141
+n121 -> n137
+n163 [label="AssignStatement:"];
+n164 [label="Identifier:j"];
+n163 -> n164
+n165 [label="AddExpression:"];
+n166 [label="Identifier:j"];
+n165 -> n166
+n167 [label="IntLiteral:1"];
+n165 -> n167
+n163 -> n165
+n121 -> n163
+n120 -> n121
+n113 -> n120
+n109 -> n113
+n168 [label="AssignStatement:"];
+n169 [label="Identifier:i"];
+n168 -> n169
+n170 [label="SubExpression:"];
+n171 [label="Identifier:i"];
+n170 -> n171
+n172 [label="IntLiteral:1"];
+n170 -> n172
+n168 -> n170
+n109 -> n168
+n108 -> n109
+n104 -> n108
+n69 -> n104
+n65 -> n69
+n173 [label="IntLiteral:0"];
+n65 -> n173
+n23 -> n65
+n174 [label="MethodDeclaration:"];
+n175 [label="Int:"];
+n174 -> n175
+n176 [label="Identifier:Print"];
+n174 -> n176
+n177 [label="MethodDeclarationParamsOpt:"];
+n174 -> n177
+n178 [label="MethodDeclarationBody:"];
+n179 [label="VarDeclaration:"];
+n180 [label="Int:"];
+n179 -> n180
+n181 [label="Identifier:j"];
+n179 -> n181
+n178 -> n179
+n182 [label="AssignStatement:"];
+n183 [label="Identifier:j"];
+n182 -> n183
+n184 [label="IntLiteral:0"];
+n182 -> n184
+n178 -> n182
+n185 [label="WhileStatement:"];
+n186 [label="LtExpression:"];
+n187 [label="Identifier:j"];
+n186 -> n187
+n188 [label="Expression:"];
+n189 [label="Identifier:size"];
+n188 -> n189
+n186 -> n188
+n185 -> n186
+n190 [label="Block:"];
+n191 [label="StatementMulti:"];
+n192 [label="PrintStatement:"];
+n193 [label="ArrayAccess:"];
+n194 [label="Identifier:number"];
+n193 -> n194
+n195 [label="Identifier:j"];
+n193 -> n195
+n192 -> n193
+n191 -> n192
+n196 [label="AssignStatement:"];
+n197 [label="Identifier:j"];
+n196 -> n197
+n198 [label="AddExpression:"];
+n199 [label="Identifier:j"];
+n198 -> n199
+n200 [label="IntLiteral:1"];
+n198 -> n200
+n196 -> n198
+n191 -> n196
+n190 -> n191
+n185 -> n190
+n178 -> n185
+n174 -> n178
+n201 [label="IntLiteral:0"];
+n174 -> n201
+n23 -> n174
+n202 [label="MethodDeclaration:"];
+n203 [label="Int:"];
+n202 -> n203
+n204 [label="Identifier:Init"];
+n202 -> n204
+n205 [label="MethodDeclarationParamsOpt:"];
+n206 [label="ParameterList:"];
+n207 [label="Parameter:"];
+n208 [label="Int:"];
+n207 -> n208
+n209 [label="Identifier:sz"];
+n207 -> n209
+n206 -> n207
+n205 -> n206
+n202 -> n205
+n210 [label="MethodDeclarationBody:"];
+n211 [label="AssignStatement:"];
+n212 [label="Identifier:size"];
+n211 -> n212
+n213 [label="Identifier:sz"];
+n211 -> n213
+n210 -> n211
+n214 [label="AssignStatement:"];
+n215 [label="Identifier:number"];
+n214 -> n215
+n216 [label="NewArrayExpression:"];
+n217 [label="Identifier:sz"];
+n216 -> n217
+n214 -> n216
+n210 -> n214
+n218 [label="ArrayAssignStatement:"];
+n219 [label="Identifier:number"];
+n218 -> n219
+n220 [label="IntLiteral:0"];
+n218 -> n220
+n221 [label="IntLiteral:20"];
+n218 -> n221
+n210 -> n218
+n222 [label="ArrayAssignStatement:"];
+n223 [label="Identifier:number"];
+n222 -> n223
+n224 [label="IntLiteral:1"];
+n222 -> n224
+n225 [label="IntLiteral:7"];
+n222 -> n225
+n210 -> n222
+n226 [label="ArrayAssignStatement:"];
+n227 [label="Identifier:number"];
+n226 -> n227
+n228 [label="IntLiteral:2"];
+n226 -> n228
+n229 [label="IntLiteral:12"];
+n226 -> n229
+n210 -> n226
+n230 [label="ArrayAssignStatement:"];
+n231 [label="Identifier:number"];
+n230 -> n231
+n232 [label="IntLiteral:3"];
+n230 -> n232
+n233 [label="IntLiteral:18"];
+n230 -> n233
+n210 -> n230
+n234 [label="ArrayAssignStatement:"];
+n235 [label="Identifier:number"];
+n234 -> n235
+n236 [label="IntLiteral:4"];
+n234 -> n236
+n237 [label="IntLiteral:2"];
+n234 -> n237
+n210 -> n234
+n238 [label="ArrayAssignStatement:"];
+n239 [label="Identifier:number"];
+n238 -> n239
+n240 [label="IntLiteral:5"];
+n238 -> n240
+n241 [label="IntLiteral:11"];
+n238 -> n241
+n210 -> n238
+n242 [label="ArrayAssignStatement:"];
+n243 [label="Identifier:number"];
+n242 -> n243
+n244 [label="IntLiteral:6"];
+n242 -> n244
+n245 [label="IntLiteral:6"];
+n242 -> n245
+n210 -> n242
+n246 [label="ArrayAssignStatement:"];
+n247 [label="Identifier:number"];
+n246 -> n247
+n248 [label="IntLiteral:7"];
+n246 -> n248
+n249 [label="IntLiteral:9"];
+n246 -> n249
+n210 -> n246
+n250 [label="ArrayAssignStatement:"];
+n251 [label="Identifier:number"];
+n250 -> n251
+n252 [label="IntLiteral:8"];
+n250 -> n252
+n253 [label="IntLiteral:19"];
+n250 -> n253
+n210 -> n250
+n254 [label="ArrayAssignStatement:"];
+n255 [label="Identifier:number"];
+n254 -> n255
+n256 [label="IntLiteral:9"];
+n254 -> n256
+n257 [label="IntLiteral:5"];
+n254 -> n257
+n210 -> n254
+n202 -> n210
+n258 [label="IntLiteral:0"];
+n202 -> n258
+n23 -> n202
+n14 -> n23
+n13 -> n14
+n0 -> n13
 }

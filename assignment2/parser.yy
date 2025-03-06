@@ -103,7 +103,7 @@ StatementListM:
 
 
 ClassDeclaration: CLASS Identifier LBRACE VarDeclarationCL MethodDeclarationCL RBRACE { 
-            $$ = new Node("ClassDeclaration", "", yylineno);
+            $$ = new Node("ClassDeclaration", $2->value, yylineno);
             $$->children.push_back($2);
             $$->children.push_back($4);
             $$->children.push_back($5);
@@ -134,7 +134,7 @@ MethodDeclarationCL:
 
 
 MethodDeclaration: PUBLIC Type Identifier LP MethodDeclarationParamsOpt RP LBRACE MethodDeclarationBody RETURN expression SEMICOLON RBRACE { 
-                $$ = new Node("MethodDeclaration", "", yylineno);
+                $$ = new Node("MethodDeclaration", $3->value, yylineno);
                 $$->children.push_back($2);
                 $$->children.push_back($3);
                 $$->children.push_back($5);
@@ -188,7 +188,7 @@ MethodDeclarationBody:
     };
 
 VarDeclaration: Type Identifier SEMICOLON { 
-                $$ = new Node("VarDeclaration", "", yylineno);
+                $$ = new Node("VarDeclaration", $2->value, yylineno);
                 $$->children.push_back($1);
                 $$->children.push_back($2);
           }
