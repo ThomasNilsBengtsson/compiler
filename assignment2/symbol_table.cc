@@ -26,7 +26,6 @@ void SymbolTable::addSymbol(std::string name, std::string type, IdentifierKind k
 {
     if (currentScopeName == "")
     {
-        cout << "AddSymbol if statement" << endl;
         currentScopeName = "Global";
     }
     currentScope->symbols[name] = {name, type, kind, currentScopeName};
@@ -109,16 +108,19 @@ void SymbolTable::buildSymbolTable(Node *node, SymbolTable &symbolTable)
     }
     else if (node->type == "MainClass")
     {
-        cout << "MainClass hit" << endl;
         symbolTable.addSymbol(node->value, "class", IdentifierKind::CLASS);
-        cout << "Node Value: " << node->value << endl;
+        symbolTable.enterScope(node->value);
+    }
+    else if (node->type == "MainClassParams")
+    {
+        symbolTable.addSymbol(node->value, "class", IdentifierKind::CLASS);
         symbolTable.enterScope(node->value);
     }
     for (auto child : node->children)
     {
         buildSymbolTable(child, symbolTable);
     }
-    if (node->type == "ClassDeclaration" || node->type == "MethodDeclaration")
+    if (node->type == "ClassDeclaration" || node->type == "MethodDeclaration" || node->type == "MainClass" || node->type == "MainClassParams")
     {
         symbolTable.exitScope();
     }

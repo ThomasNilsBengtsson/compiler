@@ -386,6 +386,7 @@ namespace yy {
       // Goal
       // ClassDeclarationList
       // MainClass
+      // MainClassParams
       // StatementListM
       // ClassDeclaration
       // VarDeclarationCL
@@ -590,24 +591,25 @@ namespace yy {
         S_Goal = 43,                             // Goal
         S_ClassDeclarationList = 44,             // ClassDeclarationList
         S_MainClass = 45,                        // MainClass
-        S_StatementListM = 46,                   // StatementListM
-        S_ClassDeclaration = 47,                 // ClassDeclaration
-        S_VarDeclarationCL = 48,                 // VarDeclarationCL
-        S_MethodDeclarationCL = 49,              // MethodDeclarationCL
-        S_MethodDeclaration = 50,                // MethodDeclaration
-        S_MethodDeclarationParamsOpt = 51,       // MethodDeclarationParamsOpt
-        S_MethodDeclarationParams = 52,          // MethodDeclarationParams
-        S_Parameter = 53,                        // Parameter
-        S_MethodDeclarationBody = 54,            // MethodDeclarationBody
-        S_VarDeclaration = 55,                   // VarDeclaration
-        S_Type = 56,                             // Type
-        S_StatementMulti = 57,                   // StatementMulti
-        S_Statement = 58,                        // Statement
-        S_expression = 59,                       // expression
-        S_ExpressionParamsOpt = 60,              // ExpressionParamsOpt
-        S_ExpressionParams = 61,                 // ExpressionParams
-        S_factor = 62,                           // factor
-        S_Identifier = 63                        // Identifier
+        S_MainClassParams = 46,                  // MainClassParams
+        S_StatementListM = 47,                   // StatementListM
+        S_ClassDeclaration = 48,                 // ClassDeclaration
+        S_VarDeclarationCL = 49,                 // VarDeclarationCL
+        S_MethodDeclarationCL = 50,              // MethodDeclarationCL
+        S_MethodDeclaration = 51,                // MethodDeclaration
+        S_MethodDeclarationParamsOpt = 52,       // MethodDeclarationParamsOpt
+        S_MethodDeclarationParams = 53,          // MethodDeclarationParams
+        S_Parameter = 54,                        // Parameter
+        S_MethodDeclarationBody = 55,            // MethodDeclarationBody
+        S_VarDeclaration = 56,                   // VarDeclaration
+        S_Type = 57,                             // Type
+        S_StatementMulti = 58,                   // StatementMulti
+        S_Statement = 59,                        // Statement
+        S_expression = 60,                       // expression
+        S_ExpressionParamsOpt = 61,              // ExpressionParamsOpt
+        S_ExpressionParams = 62,                 // ExpressionParams
+        S_factor = 63,                           // factor
+        S_Identifier = 64                        // Identifier
       };
     };
 
@@ -646,6 +648,7 @@ namespace yy {
       case symbol_kind::S_Goal: // Goal
       case symbol_kind::S_ClassDeclarationList: // ClassDeclarationList
       case symbol_kind::S_MainClass: // MainClass
+      case symbol_kind::S_MainClassParams: // MainClassParams
       case symbol_kind::S_StatementListM: // StatementListM
       case symbol_kind::S_ClassDeclaration: // ClassDeclaration
       case symbol_kind::S_VarDeclarationCL: // VarDeclarationCL
@@ -781,6 +784,7 @@ switch (yykind)
       case symbol_kind::S_Goal: // Goal
       case symbol_kind::S_ClassDeclarationList: // ClassDeclarationList
       case symbol_kind::S_MainClass: // MainClass
+      case symbol_kind::S_MainClassParams: // MainClassParams
       case symbol_kind::S_StatementListM: // StatementListM
       case symbol_kind::S_ClassDeclaration: // ClassDeclaration
       case symbol_kind::S_VarDeclarationCL: // VarDeclarationCL
@@ -1934,8 +1938,8 @@ switch (yykind)
     /// Constants.
     enum
     {
-      yylast_ = 369,     ///< Last index in yytable_.
-      yynnts_ = 23,  ///< Number of nonterminal symbols.
+      yylast_ = 365,     ///< Last index in yytable_.
+      yynnts_ = 24,  ///< Number of nonterminal symbols.
       yyfinal_ = 6 ///< Termination state number.
     };
 
@@ -2007,6 +2011,7 @@ switch (yykind)
       case symbol_kind::S_Goal: // Goal
       case symbol_kind::S_ClassDeclarationList: // ClassDeclarationList
       case symbol_kind::S_MainClass: // MainClass
+      case symbol_kind::S_MainClassParams: // MainClassParams
       case symbol_kind::S_StatementListM: // StatementListM
       case symbol_kind::S_ClassDeclaration: // ClassDeclaration
       case symbol_kind::S_VarDeclarationCL: // VarDeclarationCL
@@ -2104,6 +2109,7 @@ switch (yykind)
       case symbol_kind::S_Goal: // Goal
       case symbol_kind::S_ClassDeclarationList: // ClassDeclarationList
       case symbol_kind::S_MainClass: // MainClass
+      case symbol_kind::S_MainClassParams: // MainClassParams
       case symbol_kind::S_StatementListM: // StatementListM
       case symbol_kind::S_ClassDeclaration: // ClassDeclaration
       case symbol_kind::S_VarDeclarationCL: // VarDeclarationCL
@@ -2231,7 +2237,7 @@ switch (yykind)
 
 
 } // yy
-#line 2235 "parser.tab.hh"
+#line 2241 "parser.tab.hh"
 
 
 

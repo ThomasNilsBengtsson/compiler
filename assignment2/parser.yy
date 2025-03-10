@@ -46,7 +46,7 @@
 
 /* Specify types for non-terminals in the grammar */
 /* The type specifies the data type of the values associated with these non-terminals */
-%type <Node *> root expression factor Identifier MainClass Statement Type MethodDeclaration VarDeclaration ClassDeclaration Goal ClassDeclarationList StatementListM MethodDeclarationCL VarDeclarationCL MethodDeclarationParams MethodDeclarationBody StatementMulti ExpressionParams MethodDeclarationParamsOpt Parameter ExpressionParamsOpt
+%type <Node *> root expression factor Identifier MainClass Statement Type MethodDeclaration VarDeclaration ClassDeclaration Goal ClassDeclarationList StatementListM MethodDeclarationCL VarDeclarationCL MethodDeclarationParams MethodDeclarationBody StatementMulti ExpressionParams MethodDeclarationParamsOpt Parameter ExpressionParamsOpt MainClassParams
 
 /* Grammar rules section */
 /* This section defines the production rules for the language being parsed */
@@ -78,17 +78,23 @@ ClassDeclarationList:
     };
 
 
-MainClass: PUBLIC CLASS Identifier LBRACE PUBLIC STATIC VOID MAIN LP STRING LBRACKET RBRACKET Identifier RP LBRACE Statement StatementListM RBRACE RBRACE { 
-                $$ = new Node("MainClass", "", yylineno);
-
-               $$->children.push_back($3);
-                $$->children.push_back($13);
-                $$->children.push_back($16);
-                $$->children.push_back($17);
+MainClass: PUBLIC CLASS Identifier LBRACE MainClassParams RBRACE { 
+                $$ = new Node("MainClass", $3->value, yylineno);
+                $$->children.push_back($3);
+                $$->children.push_back($5);
 
           } 
     ;
+    
+MainClassParams: PUBLIC STATIC VOID MAIN LP STRING LBRACKET RBRACKET Identifier RP LBRACE Statement StatementListM RBRACE { 
+                $$ = new Node("MainClass", $9->value, yylineno);
+                $$->children.push_back($9);
+                $$->children.push_back($12);
+                $$->children.push_back($13);
 
+          } 
+    ;
+  
 StatementListM:
     { $$ = new Node("StatementList", "", yylineno); }
     |Statement{
