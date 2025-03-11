@@ -1,6 +1,7 @@
 #include <iostream>
 #include "parser.tab.hh"
 #include "symbol_table.h"
+#include "semantic_analyzer.hh"
 
 extern Node *root;
 extern FILE *yyin;
@@ -68,6 +69,17 @@ int main(int argc, char **argv)
 				ST.buildSymbolTable(root, ST);
 				printf("\n\nSymbol Table: \n");
 				ST.printTable(ST.getCurrentScope());
+
+				// Perform semantic analysis
+				SemanticAnalyzer semanticAnalyzer(ST);
+				semanticAnalyzer.analyze(root);
+
+				// Check for semantic errors
+				const vector<string> &errors = semanticAnalyzer.getErrors();
+				if (!errors.empty())
+				{
+					errCode = errCodes::SEMANTIC_ERROR;
+				}
 			}
 			catch (...)
 			{
