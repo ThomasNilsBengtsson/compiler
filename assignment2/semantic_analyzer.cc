@@ -184,11 +184,100 @@ bool SemanticAnalyzer::isCompatible(string type1, string type2)
 void SemanticAnalyzer::analyze(Node *ast)
 {
     if (!ast)
-    {
         return;
-    }
     checkIdentifiers(ast);
-    checkTypes(ast);
+}
+
+bool SemanticAnalyzer::checkIdentifiers(Node *node)
+{
+    if (!node)
+        return true;
+
+    bool result = true;
+
+    // Check current node first
+    if (node->type == "ClassDeclaration")
+    {
+        // First add the symbol to the global scope
+        symbolTable.addSymbol(node->value, "class", IdentifierKind::CLASS);
+
+        // Then check for duplicates in global scope
+        ScopeNode *globalScope = symbolTable.getCurrentScope();
+        while (globalScope && globalScope->parent)
+        {
+            globalScope = globalScope->parent;
+        }
+
+        // Count how many times this symbol appears in the global scope
+        int count = 0;
+        for (const auto &pair : globalScope->symbols)
+        {
+            if (pair.first == node->value)
+            {
+                count++;
+            }
+        }
+
+        // If it appears more than once, it's a duplicate
+        if (count > 1)
+        {
+            reportError("Already Declared Class: '" + node->value + "'", node);
+            result = false;
+        }
+
+        symbolTable.enterScope(node->value);
+    }
+    else if (node->type == "VarDeclaration")
+    {
+        // Check for duplicate variable in current scope
+        ScopeNode *scope = symbolTable.getCurrentScope();
+        if (scope && scope->symbols.find(node->value) != scope->symbols.end())
+        {
+            reportError("Already Declared variable: '" + node->value + "'", node);
+            result = false;
+        }
+        symbolTable.addSymbol(node->value, "variable", IdentifierKind::VARIABLE);
+    }
+    else if (node->type == "MethodDeclaration")
+    {
+        // Check for duplicate method in current scope
+        ScopeNode *scope = symbolTable.getCurrentScope();
+        if (scope && scope->symbols.find(node->value) != scope->symbols.end())
+        {
+            reportError("Already Declared Function: '" + node->value + "'", node);
+            result = false;
+        }
+        symbolTable.addSymbol(node->value, "method", IdentifierKind::METHOD);
+        symbolTable.enterScope(node->value);
+    }
+    else if (node->type == "Parameter")
+    {
+        // Check for duplicate parameter in current scope
+        ScopeNode *scope = symbolTable.getCurrentScope();
+        if (scope && !node->value.empty() && scope->symbols.find(node->value) != scope->symbols.end())
+        {
+            reportError("Already Declared parameter: '" + node->value + "'", node);
+            result = false;
+        }
+        if (!node->value.empty())
+        {
+            symbolTable.addSymbol(node->value, "variable", IdentifierKind::VARIABLE);
+        }
+    }
+
+    // Then check all children
+    for (auto child : node->children)
+    {
+        result &= checkIdentifiers(child);
+    }
+
+    // Exit scopes after checking children
+    if (node->type == "ClassDeclaration" || node->type == "MethodDeclaration")
+    {
+        symbolTable.exitScope();
+    }
+
+    return result;
 }
 
 void SemanticAnalyzer::checkTypes(Node *node)
@@ -282,120 +371,6 @@ void SemanticAnalyzer::checkTypes(Node *node)
     {
         checkTypes(child);
     }
-}
-
-bool SemanticAnalyzer::checkIdentifiers(Node *node)
-{
-    if (!node)
-    {
-        return true;
-    }
-
-    bool result = true;
-
-    // Check for duplicate declarations
-    if (node->type == "ClassDeclaration")
-    {
-        Symbol *existingClass = symbolTable.findSymbol(node->value);
-        if (existingClass && existingClass->kind == IdentifierKind::CLASS)
-        {
-            reportError("Duplicate class declaration: " + node->value, node);
-            result = false;
-        }
-    }
-    else if (node->type == "MethodDeclaration")
-    {
-        Symbol *existingMethod = symbolTable.findSymbol(node->value);
-        if (existingMethod && existingMethod->kind == IdentifierKind::METHOD)
-        {
-            reportError("Duplicate method declaration: " + node->value, node);
-            result = false;
-        }
-    }
-    else if (node->type == "VarDeclaration")
-    {
-        Symbol *existingVar = symbolTable.findSymbol(node->value);
-        if (existingVar && existingVar->kind == IdentifierKind::VARIABLE)
-        {
-            reportError("Duplicate variable declaration: " + node->value, node);
-            result = false;
-        }
-    }
-
-    // Check for undefined identifiers in usage contexts
-    if (node->type == "Identifier")
-    {
-        // Check if this identifier is being used (not declared)
-        bool isDeclarationContext = false;
-
-        // Check if this identifier is part of a declaration by examining its position in the AST
-        if (!node->children.empty())
-        {
-            Node *firstChild = node->children.front();
-            if (firstChild->type == "Type" || firstChild->type == "Int" ||
-                firstChild->type == "Boolean" || firstChild->type == "IntArray")
-            {
-                isDeclarationContext = true;
-            }
-        }
-
-        if (!isDeclarationContext)
-        {
-            Symbol *symbol = symbolTable.findSymbol(node->value);
-            if (!symbol)
-            {
-                reportError("Use of undefined identifier: " + node->value, node);
-                result = false;
-            }
-        }
-    }
-
-    // Check method calls
-    if (node->type == "MethodCall")
-    {
-        Symbol *methodSymbol = symbolTable.findSymbol(node->value);
-        if (!methodSymbol || methodSymbol->kind != IdentifierKind::METHOD)
-        {
-            reportError("Call to undefined method: " + node->value, node);
-            result = false;
-        }
-    }
-
-    // Check array access
-    if (node->type == "ArrayLookup")
-    {
-        if (!node->children.empty())
-        {
-            string arrayType = getExpressionType(node->children.front());
-            if (arrayType != "int[]")
-            {
-                reportError("Array access on non-array type", node);
-                result = false;
-            }
-        }
-    }
-
-    // Check array length access
-    if (node->type == "ArrayLength")
-    {
-        if (!node->children.empty())
-        {
-            string arrayType = getExpressionType(node->children.front());
-            if (arrayType != "int[]")
-            {
-                reportError("Length property used on non-array type", node);
-                result = false;
-            }
-        }
-    }
-
-    // Recursively check all children
-    for (auto child : node->children)
-    {
-        result &= checkIdentifiers(child);
-    }
-
-    return result;
 }
 
 bool SemanticAnalyzer::checkExpressions(Node *node)
