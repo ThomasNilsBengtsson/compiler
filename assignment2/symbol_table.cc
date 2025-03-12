@@ -70,9 +70,8 @@ void SymbolTable::buildSymbolTable(Node *node, SymbolTable &symbolTable)
 
     if (node->type == "ClassDeclaration")
     {
-        cout << "ClassDeclaration hit" << endl;
+        cout << "hej " << node->value << endl;
         symbolTable.addSymbol(node->value, "class", IdentifierKind::CLASS);
-        cout << "Node Value: " << node->value << endl;
         symbolTable.enterScope(node->value);
     }
     else if (node->type == "MethodDeclaration")

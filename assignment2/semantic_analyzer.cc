@@ -221,7 +221,7 @@ bool SemanticAnalyzer::checkIdentifiers(Node *node)
         // If it appears more than once, it's a duplicate
         if (count > 1)
         {
-            reportError("Already Declared Class: '" + node->value + "'", node);
+            reportError("semantic - already Declared Class: '" + node->value + "'", node);
             result = false;
         }
 
@@ -233,7 +233,7 @@ bool SemanticAnalyzer::checkIdentifiers(Node *node)
         ScopeNode *scope = symbolTable.getCurrentScope();
         if (scope && scope->symbols.find(node->value) != scope->symbols.end())
         {
-            reportError("Already Declared variable: '" + node->value + "'", node);
+            reportError("semantic - already Declared variable: '" + node->value + "'", node);
             result = false;
         }
         symbolTable.addSymbol(node->value, "variable", IdentifierKind::VARIABLE);
@@ -244,7 +244,7 @@ bool SemanticAnalyzer::checkIdentifiers(Node *node)
         ScopeNode *scope = symbolTable.getCurrentScope();
         if (scope && scope->symbols.find(node->value) != scope->symbols.end())
         {
-            reportError("Already Declared Function: '" + node->value + "'", node);
+            reportError("semantic - already Declared Function: '" + node->value + "'", node);
             result = false;
         }
         symbolTable.addSymbol(node->value, "method", IdentifierKind::METHOD);
@@ -256,7 +256,7 @@ bool SemanticAnalyzer::checkIdentifiers(Node *node)
         ScopeNode *scope = symbolTable.getCurrentScope();
         if (scope && !node->value.empty() && scope->symbols.find(node->value) != scope->symbols.end())
         {
-            reportError("Already Declared parameter: '" + node->value + "'", node);
+            reportError("semantic - already Declared parameter: '" + node->value + "'", node);
             result = false;
         }
         if (!node->value.empty())
@@ -373,6 +373,15 @@ void SemanticAnalyzer::checkTypes(Node *node)
     }
 }
 
+bool SemanticAnalyzer::checkDuplicates(Node *node)
+{
+    bool duplicates = false;
+
+    
+
+    return duplicates;
+}
+
 bool SemanticAnalyzer::checkExpressions(Node *node)
 {
     // This functionality is now handled in checkTypes
@@ -401,7 +410,7 @@ void SemanticAnalyzer::printSymbolTable()
 void SemanticAnalyzer::reportError(string message, Node *node)
 {
     string location = node ? " at line " + to_string(node->lineno) : "";
-    string error = "Semantic Error" + location + ": " + message;
+    string error = "@error" + location + ": " + message;
     errors.push_back(error);
-    cout << error << endl;
+    cerr << error << endl;
 }

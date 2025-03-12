@@ -18,6 +18,8 @@ public:
     void analyze(Node *ast);
     void checkTypes(Node *node);
 
+    bool checkDuplicates(Node *node);
+
     bool checkIdentifiers(Node *node);
     bool checkExpressions(Node *node);
     bool checkStatements(Node *node);

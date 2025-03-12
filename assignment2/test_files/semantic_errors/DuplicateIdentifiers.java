@@ -20,6 +20,7 @@ class DuplicateIdentifiers {// @error - semantic (Already Declared Class: 'Dupli
 
 class MyClass {
     boolean b;
+
     boolean b;// @error - semantic (Already Declared variable: 'b')
 
     public int Pen(int param, int param) {// @error - semantic (Already Declared parameter: 'param')
