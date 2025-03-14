@@ -18,42 +18,50 @@ void SymbolTable::exitScope()
     if (currentScope->parent)
     {
         currentScope = currentScope->parent;
-        currentScopeName = currentScope->symbols.begin()->second.scopeLevel;
+        if (!currentScope->symbols.empty())
+        {
+            currentScopeName = currentScope->symbols[0].scopeLevel;
+        }
     }
 }
 
-void SymbolTable::addSymbol(std::string name, std::string type, IdentifierKind kind)
+void SymbolTable::addSymbol(std::string name, std::string type, IdentifierKind kind, int lineNumber)
 {
     if (currentScopeName == "")
     {
         currentScopeName = "Global";
     }
-    currentScope->symbols[name] = {name, type, kind, currentScopeName};
+    currentScope->symbols.push_back({name, type, kind, currentScopeName, lineNumber});
 }
 
-Symbol *SymbolTable::findSymbol(std::string name)
+vector<Symbol *> SymbolTable::findSymbol(std::string name)
 {
+    vector<Symbol *> found;
     ScopeNode *scope = currentScope;
     while (scope)
     {
-        if (scope->symbols.find(name) != scope->symbols.end())
+        for (auto &symbol : scope->symbols)
         {
-            return &scope->symbols[name];
+            if (symbol.name == name)
+            {
+                found.push_back(&symbol);
+            }
         }
         scope = scope->parent;
     }
-    return nullptr;
+    return found;
 }
 
 void SymbolTable::printTable(ScopeNode *scope, int depth)
 {
-    for (const auto &entry : scope->symbols)
+    for (const auto &symbol : scope->symbols)
     {
         std::cout << std::string(depth * 2, ' ') // Indentation
-                  << "Name: " << entry.second.name
-                  << ", Type: " << entry.second.type
-                  << ", Kind: " << (int)entry.second.kind
-                  << ", Scope Level: " << entry.second.scopeLevel << "\n";
+                  << "Name: " << symbol.name
+                  << ", Type: " << symbol.type
+                  << ", Kind: " << (int)symbol.kind
+                  << ", Scope Level: " << symbol.scopeLevel
+                  << ", Line: " << symbol.lineNumber << "\n";
     }
     for (auto child : scope->children)
     {
@@ -71,13 +79,12 @@ void SymbolTable::buildSymbolTable(Node *node, SymbolTable &symbolTable)
     if (node->type == "ClassDeclaration")
     {
         cout << "hej " << node->value << endl;
-        symbolTable.addSymbol(node->value, "class", IdentifierKind::CLASS);
+        symbolTable.addSymbol(node->value, "class", IdentifierKind::CLASS, node->lineno);
         symbolTable.enterScope(node->value);
     }
     else if (node->type == "MethodDeclaration")
     {
-
-        symbolTable.addSymbol(node->value, "method", IdentifierKind::METHOD);
+        symbolTable.addSymbol(node->value, "method", IdentifierKind::METHOD, node->lineno);
         symbolTable.enterScope(node->value);
     }
     else if (node->type == "VarDeclaration")
@@ -86,33 +93,17 @@ void SymbolTable::buildSymbolTable(Node *node, SymbolTable &symbolTable)
         {
             Node *typeNode = node->children.front();
             Node *nameNode = *(++node->children.begin());
-            symbolTable.addSymbol(nameNode->value, typeNode->type, IdentifierKind::VARIABLE);
-        }
-    }
-    else if (node->type == "MethodDeclarationParamsOpt")
-    {
-        if (node->children.size() >= 1)
-        {
-            Node *paramsNode = node->children.front();
-            for (auto param : paramsNode->children)
-            {
-                if (param->children.size() >= 2)
-                {
-                    Node *typeNode = param->children.front();
-                    Node *nameNode = *(++param->children.begin());
-                    symbolTable.addSymbol(nameNode->value, typeNode->type, IdentifierKind::VARIABLE);
-                }
-            }
+            symbolTable.addSymbol(nameNode->value, typeNode->type, IdentifierKind::VARIABLE, nameNode->lineno);
         }
     }
     else if (node->type == "MainClass")
     {
-        symbolTable.addSymbol(node->value, "class", IdentifierKind::CLASS);
+        symbolTable.addSymbol(node->value, "class", IdentifierKind::CLASS, node->lineno);
         symbolTable.enterScope(node->value);
     }
     else if (node->type == "MainClassParams")
     {
-        symbolTable.addSymbol(node->value, "class", IdentifierKind::CLASS);
+        symbolTable.addSymbol(node->value, "class", IdentifierKind::CLASS, node->lineno);
         symbolTable.enterScope(node->value);
     }
     for (auto child : node->children)

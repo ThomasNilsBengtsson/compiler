@@ -13,6 +13,7 @@ private:
     bool isCompatible(string type1, string type2);
 
 public:
+    SemanticAnalyzer() : symbolTable() {}
     SemanticAnalyzer(SymbolTable &st) : symbolTable(st) {}
 
     void analyze(Node *ast);
@@ -26,7 +27,9 @@ public:
     bool checkMethodDeclaration(Node *node);
 
     void printSymbolTable();
-    const vector<string> &getErrors() { return errors; }
+    vector<string> getErrors() const { return errors; }
     void reportError(string message, Node *node);
+
+    bool checkDuplicateInScope(ScopeNode *scope, const string &name, IdentifierKind kind);
 };
 #endif

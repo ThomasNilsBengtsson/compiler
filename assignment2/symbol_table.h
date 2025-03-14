@@ -21,12 +21,13 @@ struct Symbol
     string type;
     IdentifierKind kind;
     string scopeLevel;
+    int lineNumber;
 };
 
 class ScopeNode
 {
 public:
-    unordered_map<string, Symbol> symbols;
+    vector<Symbol> symbols;
     ScopeNode *parent;
     vector<ScopeNode *> children;
     ScopeNode(ScopeNode *parentScope = nullptr) : parent(parentScope) {}
@@ -42,10 +43,11 @@ public:
     SymbolTable();
     void enterScope(string scopeName);
     void exitScope();
-    void addSymbol(string name, string type, IdentifierKind kind);
-    Symbol *findSymbol(string name);
+    void addSymbol(string name, string type, IdentifierKind kind, int lineNumber);
+    vector<Symbol *> findSymbol(string name);
     void printTable(ScopeNode *scope, int depth = 0);
     ScopeNode *getCurrentScope() { return currentScope; };
-    void buildSymbolTable(Node *node, SymbolTable &symbolTable);
+    string getCurrentScopeName() { return currentScopeName; }
+    static void buildSymbolTable(Node *node, SymbolTable &symbolTable);
 };
 #endif
