@@ -49,5 +49,6 @@ public:
     ScopeNode *getCurrentScope() { return currentScope; };
     string getCurrentScopeName() { return currentScopeName; }
     static void buildSymbolTable(Node *node, SymbolTable &symbolTable);
+    void removeSymbol(const string &name, IdentifierKind kind, ScopeNode *scope);
 };
 #endif

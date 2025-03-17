@@ -80,6 +80,9 @@ int main(int argc, char **argv)
 				{
 					errCode = errCodes::SEMANTIC_ERROR;
 				}
+				printf("\n\nSymbol Table: \n");
+
+				ST.printTable(ST.getCurrentScope());
 			}
 			catch (...)
 			{

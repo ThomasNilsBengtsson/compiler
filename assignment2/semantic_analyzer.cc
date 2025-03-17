@@ -190,13 +190,12 @@ void SemanticAnalyzer::analyze(Node *ast)
 
 bool SemanticAnalyzer::checkDuplicateInScope(ScopeNode *scope, const string &name, IdentifierKind kind)
 {
-
     for (const auto &symbol : scope->symbols)
     {
-        cout << "symbol.name: " << symbol.name << "  " << "name: " << name << endl;
         if (symbol.name == name && symbol.kind == kind)
         {
-            cout << "true" << endl;
+            // Remove the duplicate symbol from the correct scope
+            symbolTable.removeSymbol(symbol.name, symbol.kind, scope);
             return true;
         }
     }

@@ -115,3 +115,19 @@ void SymbolTable::buildSymbolTable(Node *node, SymbolTable &symbolTable)
         symbolTable.exitScope();
     }
 }
+
+void SymbolTable::removeSymbol(const string &name, IdentifierKind kind, ScopeNode *scope)
+{
+    if (!scope)
+        return;
+
+    // Find and remove the symbol with matching name and kind from the specified scope
+    auto it = std::remove_if(scope->symbols.begin(), scope->symbols.end(),
+                             [&name, &kind](const Symbol &symbol)
+                             {
+                                 return symbol.name == name && symbol.kind == kind;
+                             });
+
+    // Erase the removed elements
+    scope->symbols.erase(it, scope->symbols.end());
+}
