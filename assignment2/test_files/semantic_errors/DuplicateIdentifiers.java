@@ -5,7 +5,7 @@ public class DuplicateIdentifiers {
     }
 }
 
-class DuplicateIdentifierss {// @error - semantic (Already Declared Class: 'DuplicateIdentifiers')
+class DuplicateIdentifiers {// @error - semantic (Already Declared Class: 'DuplicateIdentifiers')
     int a;
     int a;// @error - semantic (Already Declared variable: 'a')
 

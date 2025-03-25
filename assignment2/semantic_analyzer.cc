@@ -120,7 +120,7 @@ string SemanticAnalyzer::getExpressionType(Node *node)
                 return "Unknown";
             }
 
-            // Check parameter count
+            // Check parameter count 
             size_t expectedParams = 1; // Assuming all methods take 1 parameter for now
             size_t actualParams = node->children.size() - 1;
             if (actualParams != expectedParams)
@@ -190,13 +190,15 @@ void SemanticAnalyzer::analyze(Node *ast)
 
 bool SemanticAnalyzer::checkDuplicateInScope(ScopeNode *scope, const string &name, IdentifierKind kind)
 {
+    int symbolCount = 0;
     for (const auto &symbol : scope->symbols)
     {
         if (symbol.name == name && symbol.kind == kind)
         {
-            // Remove the duplicate symbol from the correct scope
-            symbolTable.removeSymbol(symbol.name, symbol.kind, scope);
-            return true;
+            cout << "Duplicate identifier: " << symbol.name << endl;
+            symbolCount++;
+            if (symbolCount > 1)
+                return true;
         }
     }
     return false;
@@ -212,23 +214,26 @@ bool SemanticAnalyzer::checkIdentifiers(Node *node)
     // Check current node first
     if (node->type == "ClassDeclaration")
     {
-        // First add the symbol to the global scope with line number
-        symbolTable.addSymbol(node->value, "class", IdentifierKind::CLASS, node->lineno);
-
         // Then check for duplicates in global scope
         ScopeNode *globalScope = symbolTable.getCurrentScope();
         while (globalScope && globalScope->parent)
         {
             globalScope = globalScope->parent;
         }
-
+        symbolTable.addSymbol(node->value, "class", IdentifierKind::CLASS, node->lineno);
         if (checkDuplicateInScope(globalScope, node->value, IdentifierKind::CLASS))
         {
             reportError("semantic - already Declared Class: '" + node->value + "'", node);
             result = false;
         }
-
         symbolTable.enterScope(node->value);
+        for (auto child : node->children)
+        {
+            result &= checkIdentifiers(child);
+        }
+        
+        // Exit the class scope after checking
+        symbolTable.exitScope();
     }
     else if (node->type == "VarDeclaration")
     {
@@ -239,7 +244,7 @@ bool SemanticAnalyzer::checkIdentifiers(Node *node)
             Node *nameNode = *(++node->children.begin());
             varName = nameNode->value;
         }
-
+        symbolTable.addSymbol(varName, "variable", IdentifierKind::VARIABLE, node->lineno);
         // Check for duplicate variable in current scope only
         ScopeNode *scope = symbolTable.getCurrentScope();
         if (checkDuplicateInScope(scope, varName, IdentifierKind::VARIABLE))
@@ -247,7 +252,6 @@ bool SemanticAnalyzer::checkIdentifiers(Node *node)
             reportError("semantic - already Declared variable: '" + varName + "'", node);
             result = false;
         }
-        symbolTable.addSymbol(varName, "variable", IdentifierKind::VARIABLE, node->lineno);
     }
     else if (node->type == "MethodDeclaration")
     {
@@ -434,7 +438,7 @@ void SemanticAnalyzer::printSymbolTable()
 
 void SemanticAnalyzer::reportError(string message, Node *node)
 {
-    string location = node ? " at line " + to_string(node->lineno) : "";
+    string location = node ? " at line " + to_string(node->children.front()->lineno) : "";
     string error = "@error" + location + ": " + message;
     errors.push_back(error);
     cerr << error << endl;

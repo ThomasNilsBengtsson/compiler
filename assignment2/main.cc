@@ -73,16 +73,6 @@ int main(int argc, char **argv)
 				// Perform semantic analysis
 				SemanticAnalyzer semanticAnalyzer(ST);
 				semanticAnalyzer.analyze(root);
-
-				// Check for semantic errors
-				const vector<string> &errors = semanticAnalyzer.getErrors();
-				if (!errors.empty())
-				{
-					errCode = errCodes::SEMANTIC_ERROR;
-				}
-				printf("\n\nSymbol Table: \n");
-
-				ST.printTable(ST.getCurrentScope());
 			}
 			catch (...)
 			{

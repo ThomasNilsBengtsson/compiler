@@ -79,12 +79,24 @@ void SymbolTable::buildSymbolTable(Node *node, SymbolTable &symbolTable)
     if (node->type == "ClassDeclaration")
     {
         cout << "hej " << node->value << endl;
-        symbolTable.addSymbol(node->value, "class", IdentifierKind::CLASS, node->lineno);
+        int lineNo = node->lineno;
+        if (!node->children.empty())
+        {
+            lineNo = node->children.front()->lineno;
+        }
+        symbolTable.addSymbol(node->value, "class", IdentifierKind::CLASS, lineNo);
         symbolTable.enterScope(node->value);
     }
     else if (node->type == "MethodDeclaration")
     {
-        symbolTable.addSymbol(node->value, "method", IdentifierKind::METHOD, node->lineno);
+        int lineNo = node->lineno;
+        if (node->children.size() > 1)
+        {
+            auto it = node->children.begin();
+            ++it; // Move to second element
+            lineNo = (*it)->lineno;
+        }
+        symbolTable.addSymbol(node->value, "method", IdentifierKind::METHOD, lineNo);
         symbolTable.enterScope(node->value);
     }
     else if (node->type == "VarDeclaration")
@@ -98,12 +110,22 @@ void SymbolTable::buildSymbolTable(Node *node, SymbolTable &symbolTable)
     }
     else if (node->type == "MainClass")
     {
-        symbolTable.addSymbol(node->value, "class", IdentifierKind::CLASS, node->lineno);
+        int lineNo = node->lineno;
+        if (!node->children.empty())
+        {
+            lineNo = node->children.front()->lineno;
+        }
+        symbolTable.addSymbol(node->value, "class", IdentifierKind::CLASS, lineNo);
         symbolTable.enterScope(node->value);
     }
     else if (node->type == "MainClassParams")
     {
-        symbolTable.addSymbol(node->value, "class", IdentifierKind::CLASS, node->lineno);
+        int lineNo = node->lineno;
+        if (!node->children.empty())
+        {
+            lineNo = node->children.front()->lineno;
+        }
+        symbolTable.addSymbol(node->value, "class", IdentifierKind::CLASS, lineNo);
         symbolTable.enterScope(node->value);
     }
     for (auto child : node->children)
