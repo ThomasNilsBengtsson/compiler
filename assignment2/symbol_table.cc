@@ -24,7 +24,9 @@ void SymbolTable::exitScope()
 
 void SymbolTable::addSymbol(std::string name, std::string type, IdentifierKind kind)
 {
-    if(currentScopeName == ""){
+    if (currentScopeName == "")
+    {
+        cout << "AddSymbol if statement" << endl;
         currentScopeName = "Global";
     }
     currentScope->symbols[name] = {name, type, kind, currentScopeName};
@@ -69,7 +71,9 @@ void SymbolTable::buildSymbolTable(Node *node, SymbolTable &symbolTable)
 
     if (node->type == "ClassDeclaration")
     {
+        cout << "ClassDeclaration hit" << endl;
         symbolTable.addSymbol(node->value, "class", IdentifierKind::CLASS);
+        cout << "Node Value: " << node->value << endl;
         symbolTable.enterScope(node->value);
     }
     else if (node->type == "MethodDeclaration")
@@ -80,14 +84,37 @@ void SymbolTable::buildSymbolTable(Node *node, SymbolTable &symbolTable)
     }
     else if (node->type == "VarDeclaration")
     {
-        if(node->children.size() >= 2)
+        if (node->children.size() >= 2)
         {
-            Node* typeNode = node->children.front();
-            Node* nameNode = *(++node->children.begin());
+            Node *typeNode = node->children.front();
+            Node *nameNode = *(++node->children.begin());
             symbolTable.addSymbol(nameNode->value, typeNode->type, IdentifierKind::VARIABLE);
         }
     }
-    for(auto child : node->children)
+    else if (node->type == "MethodDeclarationParamsOpt")
+    {
+        if (node->children.size() >= 1)
+        {
+            Node *paramsNode = node->children.front();
+            for (auto param : paramsNode->children)
+            {
+                if (param->children.size() >= 2)
+                {
+                    Node *typeNode = param->children.front();
+                    Node *nameNode = *(++param->children.begin());
+                    symbolTable.addSymbol(nameNode->value, typeNode->type, IdentifierKind::VARIABLE);
+                }
+            }
+        }
+    }
+    else if (node->type == "MainClass")
+    {
+        cout << "MainClass hit" << endl;
+        symbolTable.addSymbol(node->value, "class", IdentifierKind::CLASS);
+        cout << "Node Value: " << node->value << endl;
+        symbolTable.enterScope(node->value);
+    }
+    for (auto child : node->children)
     {
         buildSymbolTable(child, symbolTable);
     }

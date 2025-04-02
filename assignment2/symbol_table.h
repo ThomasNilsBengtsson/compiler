@@ -46,6 +46,6 @@ public:
     Symbol *findSymbol(string name);
     void printTable(ScopeNode *scope, int depth = 0);
     ScopeNode *getCurrentScope() { return currentScope; };
-    void buildSymbolTable(Node* node, SymbolTable& symbolTable);
+    void buildSymbolTable(Node *node, SymbolTable &symbolTable);
 };
 #endif

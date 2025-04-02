@@ -152,3 +152,8 @@ class BS{
     }
 
 }
+
+class Test{
+
+	int x;
+}
