@@ -120,7 +120,7 @@ string SemanticAnalyzer::getExpressionType(Node *node)
                 return "Unknown";
             }
 
-            // Check parameter count 
+            // Check parameter count
             size_t expectedParams = 1; // Assuming all methods take 1 parameter for now
             size_t actualParams = node->children.size() - 1;
             if (actualParams != expectedParams)
@@ -190,26 +190,41 @@ void SemanticAnalyzer::analyze(Node *ast)
 
 bool SemanticAnalyzer::checkDuplicateInScope(ScopeNode *scope, const string &name, IdentifierKind kind)
 {
-    int symbolCount = 0;
-    for (const auto &symbol : scope->symbols)
+    // Initialize the last checked position if it doesn't exist
+    if (lastCheckedPosition.find(scope) == lastCheckedPosition.end() ||
+        lastCheckedPosition[scope].find(kind) == lastCheckedPosition[scope].end())
     {
+        lastCheckedPosition[scope][kind] = 0;
+    }
+
+    // Start from the last checked position
+    size_t startPos = lastCheckedPosition[scope][kind];
+    size_t currentPos = startPos;
+
+    cout << "Checking from position " << startPos << endl;
+
+    // First check for duplicates from the starting position to the end
+    for (size_t i = startPos; i < scope->symbols.size(); i++)
+    {
+        const auto &symbol = scope->symbols[i];
         if (symbol.name == name && symbol.kind == kind)
         {
-            cout << "Duplicate identifier: " << symbol.name << endl;
-            symbolCount++;
-            if (symbolCount > 1)
-                return true;
+            // Update the last checked position
+            lastCheckedPosition[scope][kind] = i + 1;
+            return true;
         }
     }
+
+    // Update the last checked position to the end
+    lastCheckedPosition[scope][kind] = scope->symbols.size();
+
     return false;
 }
 
-bool SemanticAnalyzer::checkIdentifiers(Node *node)
+void SemanticAnalyzer::checkIdentifiers(Node *node)
 {
     if (!node)
-        return true;
-
-    bool result = true;
+        return;
 
     // Check current node first
     if (node->type == "ClassDeclaration")
@@ -224,14 +239,15 @@ bool SemanticAnalyzer::checkIdentifiers(Node *node)
         if (checkDuplicateInScope(globalScope, node->value, IdentifierKind::CLASS))
         {
             reportError("semantic - already Declared Class: '" + node->value + "'", node);
-            result = false;
         }
         symbolTable.enterScope(node->value);
         for (auto child : node->children)
         {
-            result &= checkIdentifiers(child);
+
+            checkIdentifiers(child);
+            break;
         }
-        
+
         // Exit the class scope after checking
         symbolTable.exitScope();
     }
@@ -245,12 +261,12 @@ bool SemanticAnalyzer::checkIdentifiers(Node *node)
             varName = nameNode->value;
         }
         symbolTable.addSymbol(varName, "variable", IdentifierKind::VARIABLE, node->lineno);
+        cout << varName << " var has been added to the ST!" << endl;
         // Check for duplicate variable in current scope only
         ScopeNode *scope = symbolTable.getCurrentScope();
         if (checkDuplicateInScope(scope, varName, IdentifierKind::VARIABLE))
         {
             reportError("semantic - already Declared variable: '" + varName + "'", node);
-            result = false;
         }
     }
     else if (node->type == "MethodDeclaration")
@@ -260,7 +276,6 @@ bool SemanticAnalyzer::checkIdentifiers(Node *node)
         if (checkDuplicateInScope(scope, node->value, IdentifierKind::METHOD))
         {
             reportError("semantic - already Declared Function: '" + node->value + "'", node);
-            result = false;
         }
         symbolTable.addSymbol(node->value, "method", IdentifierKind::METHOD, node->lineno);
         symbolTable.enterScope(node->value);
@@ -290,7 +305,6 @@ bool SemanticAnalyzer::checkIdentifiers(Node *node)
             if (checkDuplicateInScope(scope, paramName, IdentifierKind::VARIABLE))
             {
                 reportError("semantic - already Declared parameter: '" + paramName + "'", node);
-                result = false;
             }
             symbolTable.addSymbol(paramName, paramType, IdentifierKind::VARIABLE, node->lineno);
         }
@@ -299,7 +313,7 @@ bool SemanticAnalyzer::checkIdentifiers(Node *node)
     // Then check all children
     for (auto child : node->children)
     {
-        result &= checkIdentifiers(child);
+        checkIdentifiers(child);
     }
 
     // Exit scopes after checking children
@@ -307,8 +321,6 @@ bool SemanticAnalyzer::checkIdentifiers(Node *node)
     {
         symbolTable.exitScope();
     }
-
-    return result;
 }
 
 void SemanticAnalyzer::checkTypes(Node *node)

@@ -1,6 +1,7 @@
 #ifndef SEMANTIC_ANALYZER_HH
 #define SEMANTIC_ANALYZER_HH
 
+#include <unordered_set>
 #include "symbol_table.h"
 
 class SemanticAnalyzer
@@ -8,6 +9,8 @@ class SemanticAnalyzer
 private:
     SymbolTable symbolTable;
     vector<string> errors;
+    // Map to store the last checked position for each scope and kind
+    unordered_map<ScopeNode *, unordered_map<IdentifierKind, size_t>> lastCheckedPosition;
 
     string getExpressionType(Node *node);
     bool isCompatible(string type1, string type2);
@@ -21,7 +24,7 @@ public:
 
     bool checkDuplicates(Node *node);
 
-    bool checkIdentifiers(Node *node);
+    void checkIdentifiers(Node *node);
     bool checkExpressions(Node *node);
     bool checkStatements(Node *node);
     bool checkMethodDeclaration(Node *node);
