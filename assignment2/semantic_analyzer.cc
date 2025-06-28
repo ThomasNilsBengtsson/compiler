@@ -185,40 +185,9 @@ void SemanticAnalyzer::analyze(Node *ast)
 {
     if (!ast)
         return;
+    // Reset state for a new analysis run
+    declaredIdentifiers.clear();
     checkIdentifiers(ast);
-}
-
-bool SemanticAnalyzer::checkDuplicateInScope(ScopeNode *scope, const string &name, IdentifierKind kind)
-{
-    // Initialize the last checked position if it doesn't exist
-    if (lastCheckedPosition.find(scope) == lastCheckedPosition.end() ||
-        lastCheckedPosition[scope].find(kind) == lastCheckedPosition[scope].end())
-    {
-        lastCheckedPosition[scope][kind] = 0;
-    }
-
-    // Start from the last checked position
-    size_t startPos = lastCheckedPosition[scope][kind];
-    size_t currentPos = startPos;
-
-    cout << "Checking from position " << startPos << endl;
-
-    // First check for duplicates from the starting position to the end
-    for (size_t i = startPos; i < scope->symbols.size(); i++)
-    {
-        const auto &symbol = scope->symbols[i];
-        if (symbol.name == name && symbol.kind == kind)
-        {
-            // Update the last checked position
-            lastCheckedPosition[scope][kind] = i + 1;
-            return true;
-        }
-    }
-
-    // Update the last checked position to the end
-    lastCheckedPosition[scope][kind] = scope->symbols.size();
-
-    return false;
 }
 
 void SemanticAnalyzer::checkIdentifiers(Node *node)
@@ -226,98 +195,91 @@ void SemanticAnalyzer::checkIdentifiers(Node *node)
     if (!node)
         return;
 
-    // Check current node first
-    if (node->type == "ClassDeclaration")
-    {
-        // Then check for duplicates in global scope
-        ScopeNode *globalScope = symbolTable.getCurrentScope();
-        while (globalScope && globalScope->parent)
-        {
-            globalScope = globalScope->parent;
-        }
-        symbolTable.addSymbol(node->value, "class", IdentifierKind::CLASS, node->lineno);
-        if (checkDuplicateInScope(globalScope, node->value, IdentifierKind::CLASS))
-        {
-            reportError("semantic - already Declared Class: '" + node->value + "'", node);
-        }
-        symbolTable.enterScope(node->value);
-        for (auto child : node->children)
-        {
+    bool scopeEntered = false;
 
-            checkIdentifiers(child);
-            break;
-        }
-
-        // Exit the class scope after checking
-        symbolTable.exitScope();
-    }
-    else if (node->type == "VarDeclaration")
+    // Handle declarations and scope entry
+    if (node->type == "ClassDeclaration" || node->type == "MainClass")
     {
-        // Get variable name from children if available
-        string varName = node->value;
-        if (node->children.size() >= 2)
-        {
-            Node *nameNode = *(++node->children.begin());
-            varName = nameNode->value;
-        }
-        symbolTable.addSymbol(varName, "variable", IdentifierKind::VARIABLE, node->lineno);
-        cout << varName << " var has been added to the ST!" << endl;
-        // Check for duplicate variable in current scope only
         ScopeNode *scope = symbolTable.getCurrentScope();
-        if (checkDuplicateInScope(scope, varName, IdentifierKind::VARIABLE))
+        string name = node->value;
+
+        if (declaredIdentifiers[scope].count(name))
         {
-            reportError("semantic - already Declared variable: '" + varName + "'", node);
+            reportError("semantic - already Declared Class: '" + name + "'", node);
         }
+        else
+        {
+            declaredIdentifiers[scope].insert(name);
+        }
+
+        symbolTable.enterScope(name);
+        scopeEntered = true;
     }
     else if (node->type == "MethodDeclaration")
     {
-        // Check for duplicate method in current scope only
         ScopeNode *scope = symbolTable.getCurrentScope();
-        if (checkDuplicateInScope(scope, node->value, IdentifierKind::METHOD))
+        string name = node->value;
+
+        if (declaredIdentifiers[scope].count(name))
         {
-            reportError("semantic - already Declared Function: '" + node->value + "'", node);
+            reportError("semantic - already Declared Function: '" + name + "'", node);
         }
-        symbolTable.addSymbol(node->value, "method", IdentifierKind::METHOD, node->lineno);
-        symbolTable.enterScope(node->value);
+        else
+        {
+            declaredIdentifiers[scope].insert(name);
+        }
+
+        symbolTable.enterScope(name);
+        scopeEntered = true;
+    }
+    else if (node->type == "VarDeclaration")
+    {
+        ScopeNode *scope = symbolTable.getCurrentScope();
+        string name = node->value;
+        if (node->children.size() >= 2)
+        {
+            name = (*(++node->children.begin()))->value;
+        }
+
+        if (declaredIdentifiers[scope].count(name))
+        {
+            reportError("semantic - already Declared variable: '" + name + "'", node);
+        }
+        else
+        {
+            declaredIdentifiers[scope].insert(name);
+        }
     }
     else if (node->type == "Parameter")
     {
-        // Get the parameter name and type
-        string paramName = "";
-        string paramType = "";
+        ScopeNode *scope = symbolTable.getCurrentScope();
+        string name = "";
         if (node->children.size() >= 2)
         {
-            Node *typeNode = node->children.front();
-            Node *nameNode = *(++node->children.begin());
-            paramName = nameNode->value;
-            paramType = typeNode->type;
-        }
-        else if (!node->value.empty())
-        {
-            paramName = node->value;
-            paramType = "variable";
+            name = (*(++node->children.begin()))->value;
         }
 
-        // Check for duplicate parameter in current scope only
-        if (!paramName.empty())
+        if (!name.empty())
         {
-            ScopeNode *scope = symbolTable.getCurrentScope();
-            if (checkDuplicateInScope(scope, paramName, IdentifierKind::VARIABLE))
+            if (declaredIdentifiers[scope].count(name))
             {
-                reportError("semantic - already Declared parameter: '" + paramName + "'", node);
+                reportError("semantic - already Declared parameter: '" + name + "'", node);
             }
-            symbolTable.addSymbol(paramName, paramType, IdentifierKind::VARIABLE, node->lineno);
+            else
+            {
+                declaredIdentifiers[scope].insert(name);
+            }
         }
     }
 
-    // Then check all children
+    // Recurse on children
     for (auto child : node->children)
     {
         checkIdentifiers(child);
     }
 
-    // Exit scopes after checking children
-    if (node->type == "ClassDeclaration" || node->type == "MethodDeclaration")
+    // Exit scope if one was entered at this level
+    if (scopeEntered)
     {
         symbolTable.exitScope();
     }

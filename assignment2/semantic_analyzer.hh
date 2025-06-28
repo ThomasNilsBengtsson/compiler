@@ -1,7 +1,10 @@
 #ifndef SEMANTIC_ANALYZER_HH
 #define SEMANTIC_ANALYZER_HH
 
+#include <vector>
+#include <unordered_map>
 #include <unordered_set>
+#include <string>
 #include "symbol_table.h"
 
 class SemanticAnalyzer
@@ -9,8 +12,8 @@ class SemanticAnalyzer
 private:
     SymbolTable symbolTable;
     vector<string> errors;
-    // Map to store the last checked position for each scope and kind
-    unordered_map<ScopeNode *, unordered_map<IdentifierKind, size_t>> lastCheckedPosition;
+    // Keep track of identifiers declared in the current scope to detect duplicates.
+    std::unordered_map<ScopeNode *, std::unordered_set<std::string>> declaredIdentifiers;
 
     string getExpressionType(Node *node);
     bool isCompatible(string type1, string type2);
@@ -32,7 +35,5 @@ public:
     void printSymbolTable();
     vector<string> getErrors() const { return errors; }
     void reportError(string message, Node *node);
-
-    bool checkDuplicateInScope(ScopeNode *scope, const string &name, IdentifierKind kind);
 };
 #endif
