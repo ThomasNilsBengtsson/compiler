@@ -12,7 +12,8 @@ enum class IdentifierKind
 {
     CLASS,
     METHOD,
-    VARIABLE
+    VARIABLE,
+    PARAMETER
 };
 
 struct Symbol
@@ -22,11 +23,13 @@ struct Symbol
     IdentifierKind kind;
     string scopeLevel;
     int lineNumber;
+    bool returnType;
 };
 
 class ScopeNode
 {
 public:
+    string scopeName;
     vector<Symbol> symbols;
     ScopeNode *parent;
     vector<ScopeNode *> children;
@@ -38,6 +41,7 @@ class SymbolTable
 private:
     ScopeNode *currentScope;
     string currentScopeName;
+    vector<ScopeNode*> scopes;
 
 public:
     SymbolTable();
@@ -49,6 +53,6 @@ public:
     ScopeNode *getCurrentScope() { return currentScope; };
     string getCurrentScopeName() { return currentScopeName; }
     static void buildSymbolTable(Node *node, SymbolTable &symbolTable);
-    void removeSymbol(const string &name, IdentifierKind kind, ScopeNode *scope);
+    string getSymbolType(ScopeNode *scope, Node *node);
 };
 #endif

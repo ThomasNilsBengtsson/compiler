@@ -7,10 +7,26 @@ SymbolTable::SymbolTable()
 
 void SymbolTable::enterScope(string scopeName)
 {
-    ScopeNode *newScope = new ScopeNode(currentScope);
-    currentScope->children.push_back(newScope);
-    currentScope = newScope;
-    currentScopeName = scopeName;
+    bool found = false;
+    for (auto it : scopes)
+    {
+        if (it->scopeName == scopeName)
+        {
+            found = true;
+            currentScope = it;
+            currentScopeName = it->scopeName;
+        }
+    }
+    if (!found)
+    {
+        ScopeNode *newScope = new ScopeNode(currentScope);
+        currentScope->children.push_back(newScope);
+        newScope->scopeName = scopeName;
+        newScope->parent = currentScope;
+        currentScope = newScope;
+        currentScopeName = scopeName;
+        scopes.emplace_back(currentScope);
+    }
 }
 
 void SymbolTable::exitScope()
@@ -18,10 +34,11 @@ void SymbolTable::exitScope()
     if (currentScope->parent)
     {
         currentScope = currentScope->parent;
-        if (!currentScope->symbols.empty())
-        {
-            currentScopeName = currentScope->symbols[0].scopeLevel;
-        }
+        currentScopeName = currentScope->scopeName;
+    }
+    else
+    {
+        cout << "You are at root" << endl;
     }
 }
 
@@ -47,7 +64,6 @@ vector<Symbol *> SymbolTable::findSymbol(std::string name)
                 found.push_back(&symbol);
             }
         }
-        scope = scope->parent;
     }
     return found;
 }
@@ -78,7 +94,6 @@ void SymbolTable::buildSymbolTable(Node *node, SymbolTable &symbolTable)
 
     if (node->type == "ClassDeclaration")
     {
-        cout << "hej " << node->value << endl;
         int lineNo = node->lineno;
         if (!node->children.empty())
         {
@@ -89,6 +104,15 @@ void SymbolTable::buildSymbolTable(Node *node, SymbolTable &symbolTable)
     }
     else if (node->type == "MethodDeclaration")
     {
+        string returnType = "Unknown";
+        string methodName = node->value;
+
+        if (!node->children.empty())
+        {
+            Node *returnTypeNode = node->children.front();
+            returnType = returnTypeNode->type;
+        }
+
         int lineNo = node->lineno;
         if (node->children.size() > 1)
         {
@@ -96,8 +120,8 @@ void SymbolTable::buildSymbolTable(Node *node, SymbolTable &symbolTable)
             ++it; // Move to second element
             lineNo = (*it)->lineno;
         }
-        symbolTable.addSymbol(node->value, "method", IdentifierKind::METHOD, lineNo);
-        symbolTable.enterScope(node->value);
+        symbolTable.addSymbol(methodName, returnType, IdentifierKind::METHOD, lineNo);
+        symbolTable.enterScope(methodName);
     }
     else if (node->type == "VarDeclaration")
     {
@@ -138,18 +162,17 @@ void SymbolTable::buildSymbolTable(Node *node, SymbolTable &symbolTable)
     }
 }
 
-void SymbolTable::removeSymbol(const string &name, IdentifierKind kind, ScopeNode *scope)
+
+string SymbolTable::getSymbolType(ScopeNode *scope, Node *node)
 {
-    if (!scope)
-        return;
-
-    // Find and remove the symbol with matching name and kind from the specified scope
-    auto it = std::remove_if(scope->symbols.begin(), scope->symbols.end(),
-                             [&name, &kind](const Symbol &symbol)
-                             {
-                                 return symbol.name == name && symbol.kind == kind;
-                             });
-
-    // Erase the removed elements
-    scope->symbols.erase(it, scope->symbols.end());
+    cout << "currentScope: " << getCurrentScopeName() << endl;
+    for (const auto &symbol : scope->symbols)
+    {
+        cout << "symbol.name: " << symbol.name << "     " << "node->value: " << node->value << endl;
+        if (symbol.name == node->value)
+        {
+            return symbol.type;
+        }
+    }
+    return "IDK";
 }

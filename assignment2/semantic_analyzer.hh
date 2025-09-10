@@ -4,6 +4,7 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
+#include <map>
 #include <string>
 #include "symbol_table.h"
 
@@ -14,26 +15,24 @@ private:
     vector<string> errors;
     // Keep track of identifiers declared in the current scope to detect duplicates.
     std::unordered_map<ScopeNode *, std::unordered_set<std::string>> declaredIdentifiers;
-
-    string getExpressionType(Node *node);
-    bool isCompatible(string type1, string type2);
+    // For checkReturnType
+    std::map<string, string> IdentifierMap;
 
 public:
     SemanticAnalyzer() : symbolTable() {}
     SemanticAnalyzer(SymbolTable &st) : symbolTable(st) {}
 
     void analyze(Node *ast);
-    void checkTypes(Node *node);
 
-    bool checkDuplicates(Node *node);
+    void checkDuplicatesOnly(Node *node);
 
-    void checkIdentifiers(Node *node);
-    bool checkExpressions(Node *node);
-    bool checkStatements(Node *node);
-    bool checkMethodDeclaration(Node *node);
+    void checkReturnType(Node *node);
+    string getExpressionType(Node *node);
+    bool isCompatible(string type1, string type2);
+
+    void checkInvalidDefinitions(Node *node);
 
     void printSymbolTable();
-    vector<string> getErrors() const { return errors; }
     void reportError(string message, Node *node);
 };
 #endif

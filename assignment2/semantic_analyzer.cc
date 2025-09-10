@@ -1,406 +1,277 @@
 #include "semantic_analyzer.hh"
-// Windsurfer, cursor
-
-string SemanticAnalyzer::getExpressionType(Node *node)
-{
-    if (!node)
-    {
-        return "Unknown";
-    }
-
-    // Handle literals
-    if (node->type == "IntLiteral")
-    {
-        return "Int";
-    }
-    if (node->type == "BoolLiteral" || node->type == "True" || node->type == "False")
-    {
-        return "Boolean";
-    }
-
-    // Handle identifiers
-    if (node->type == "Identifier")
-    {
-        vector<Symbol *> symbols = symbolTable.findSymbol(node->value);
-        if (symbols.empty())
-        {
-            reportError("Undefined identifier: " + node->value, node);
-            return "Unknown";
-        }
-        return symbols[0]->type;
-    }
-
-    // Handle array operations
-    if (node->type == "NewArray")
-    {
-        // Check array size type
-        if (!node->children.empty())
-        {
-            string sizeType = getExpressionType(node->children.front());
-            if (!isCompatible(sizeType, "Int"))
-            {
-                reportError(sizeType + ": is of wrong type", node);
-                return "Unknown";
-            }
-        }
-        return "int[]";
-    }
-    if (node->type == "ArrayLength")
-    {
-        if (!node->children.empty())
-        {
-            string arrayType = getExpressionType(node->children.front());
-            if (arrayType != "int[]")
-            {
-                reportError("Length property can only be used with arrays", node);
-                return "Unknown";
-            }
-        }
-        return "Int";
-    }
-    if (node->type == "ArrayLookup")
-    {
-        if (node->children.size() >= 2)
-        {
-            auto it = node->children.begin();
-            string arrayType = getExpressionType(*it);
-            string indexType = getExpressionType(*(++it));
-
-            if (arrayType != "int[]")
-            {
-                reportError(arrayType + " is undefined or wrong", node);
-                return "Unknown";
-            }
-            if (indexType != "Int")
-            {
-                reportError("Array index must be integer", node);
-                return "Unknown";
-            }
-        }
-        return "Int";
-    }
-
-    // Handle object creation and this
-    if (node->type == "NewObject")
-    {
-        vector<Symbol *> symbols = symbolTable.findSymbol(node->value);
-        if (symbols.empty() || symbols[0]->kind != IdentifierKind::CLASS)
-        {
-            reportError(node->value + " is not a valid Class", node);
-            return "Unknown";
-        }
-        return node->value;
-    }
-    if (node->type == "This")
-    {
-        ScopeNode *scope = symbolTable.getCurrentScope();
-        while (scope && scope->parent)
-        {
-            scope = scope->parent;
-        }
-        if (scope && !scope->symbols.empty())
-        {
-            return scope->symbols[0].name;
-        }
-        return "Unknown";
-    }
-
-    // Handle method calls
-    if (node->type == "MethodCall")
-    {
-        if (!node->children.empty())
-        {
-            Node *object = node->children.front();
-            string objectType = getExpressionType(object);
-
-            vector<Symbol *> symbols = symbolTable.findSymbol(node->value);
-            if (symbols.empty())
-            {
-                reportError("Undefined method: " + node->value, node);
-                return "Unknown";
-            }
-
-            // Check parameter count
-            size_t expectedParams = 1; // Assuming all methods take 1 parameter for now
-            size_t actualParams = node->children.size() - 1;
-            if (actualParams != expectedParams)
-            {
-                reportError("Missing parameter", node);
-                return "Unknown";
-            }
-        }
-        return "Int"; // Assuming all methods return int for now
-    }
-
-    // Handle operators
-    if (node->type == "And" || node->type == "Or" || node->type == "Not")
-    {
-        return "Boolean";
-    }
-    if (node->type == "LessThan" || node->type == "Equal")
-    {
-        return "Boolean";
-    }
-    if (node->type == "Plus" || node->type == "Minus" || node->type == "Times")
-    {
-        for (auto child : node->children)
-        {
-            if (getExpressionType(child) != "Int")
-            {
-                reportError("Arithmetic operators require integer operands", node);
-                return "Unknown";
-            }
-        }
-        return "Int";
-    }
-
-    return "Unknown";
-}
-
-bool SemanticAnalyzer::isCompatible(string type1, string type2)
-{
-    // Direct type equality
-    if (type1 == type2)
-        return true;
-
-    // Handle array types
-    if (type1 == "int[]" && type2 == "int[]")
-        return true;
-
-    // Handle primitive types
-    if ((type1 == "Int" || type1 == "int") && (type2 == "Int" || type2 == "int"))
-        return true;
-    if ((type1 == "Boolean" || type1 == "boolean" || type1 == "bool") &&
-        (type2 == "Boolean" || type2 == "boolean" || type2 == "bool"))
-        return true;
-
-    // Handle unknown types (to avoid cascading errors)
-    if (type1 == "Unknown" || type2 == "Unknown")
-        return true;
-
-    return false;
-}
+#include <iostream>
+#include <map>
 
 void SemanticAnalyzer::analyze(Node *ast)
 {
     if (!ast)
         return;
-    // Reset state for a new analysis run
-    declaredIdentifiers.clear();
-    checkIdentifiers(ast);
+
+    symbolTable.buildSymbolTable(ast, symbolTable);
+
+    checkInvalidDefinitions(ast);
 }
 
-void SemanticAnalyzer::checkIdentifiers(Node *node)
+void SemanticAnalyzer::checkInvalidDefinitions(Node *node)
 {
     if (!node)
         return;
 
-    bool scopeEntered = false;
+    // Remove all manual scope management - just traverse and check
+    if (node->type == "Identifier")
+    {
+        // Use findSymbol which searches all scopes, not just current scope
+        vector<Symbol *> symbols = symbolTable.findSymbol(node->value);
+        
+        if (symbols.empty())
+        {
+            cout << "Symbol '" << node->value << "' not found" << endl;
+        }
+        else
+        {
+            cout << "Found symbol: " << node->value << " of type: " << symbols[0]->type << endl;
+        }
+    }
 
-    // Handle declarations and scope entry
+    // Just traverse - no scope management needed
+    for (auto child : node->children)
+    {
+        checkInvalidDefinitions(child);
+    }
+}
+
+void SemanticAnalyzer::checkDuplicatesOnly(Node *node)
+{
+    if (!node)
+        return;
+
+    static std::unordered_map<string, std::unordered_set<string>> scopeNames;
+    static string currentScopePath = "";
+    static bool initialized = false;
+    static int classCounter = 0; // Add this counter
+
+    if (!initialized)
+    {
+        scopeNames.clear();
+        currentScopePath = "";
+        classCounter = 0; // Reset counter
+        initialized = true;
+    }
+
     if (node->type == "ClassDeclaration" || node->type == "MainClass")
     {
-        ScopeNode *scope = symbolTable.getCurrentScope();
         string name = node->value;
-
-        if (declaredIdentifiers[scope].count(name))
+        if (scopeNames[currentScopePath].count(name))
         {
             reportError("semantic - already Declared Class: '" + name + "'", node);
         }
         else
         {
-            declaredIdentifiers[scope].insert(name);
+            scopeNames[currentScopePath].insert(name);
         }
 
-        symbolTable.enterScope(name);
-        scopeEntered = true;
+        string previousPath = currentScopePath;
+        // Make each class instance unique
+        currentScopePath = currentScopePath + "::" + name + "_" + to_string(++classCounter);
+
+        for (auto child : node->children)
+        {
+            checkDuplicatesOnly(child);
+        }
+
+        currentScopePath = previousPath;
+        return;
     }
     else if (node->type == "MethodDeclaration")
     {
-        ScopeNode *scope = symbolTable.getCurrentScope();
         string name = node->value;
-
-        if (declaredIdentifiers[scope].count(name))
+        if (scopeNames[currentScopePath].count(name))
         {
             reportError("semantic - already Declared Function: '" + name + "'", node);
         }
         else
         {
-            declaredIdentifiers[scope].insert(name);
+            scopeNames[currentScopePath].insert(name);
         }
 
-        symbolTable.enterScope(name);
-        scopeEntered = true;
+        string previousPath = currentScopePath;
+        currentScopePath = currentScopePath + "::" + name;
+
+        for (auto child : node->children)
+        {
+            checkDuplicatesOnly(child);
+        }
+
+        currentScopePath = previousPath;
+        return;
     }
     else if (node->type == "VarDeclaration")
     {
-        ScopeNode *scope = symbolTable.getCurrentScope();
         string name = node->value;
         if (node->children.size() >= 2)
         {
-            name = (*(++node->children.begin()))->value;
+            auto it = node->children.begin();
+            name = (*(++it))->value; // Second child is the variable name
         }
 
-        if (declaredIdentifiers[scope].count(name))
+        if (scopeNames[currentScopePath].count(name))
         {
+            cout << currentScopePath << endl;
             reportError("semantic - already Declared variable: '" + name + "'", node);
         }
         else
         {
-            declaredIdentifiers[scope].insert(name);
+            scopeNames[currentScopePath].insert(name);
         }
+        return; // Don't recurse for variable declarations
     }
     else if (node->type == "Parameter")
     {
-        ScopeNode *scope = symbolTable.getCurrentScope();
         string name = "";
         if (node->children.size() >= 2)
         {
-            name = (*(++node->children.begin()))->value;
+            auto it = node->children.begin();
+            name = (*(++it))->value; // Second child is the parameter name
         }
 
         if (!name.empty())
         {
-            if (declaredIdentifiers[scope].count(name))
+            if (scopeNames[currentScopePath].count(name))
             {
                 reportError("semantic - already Declared parameter: '" + name + "'", node);
             }
             else
             {
-                declaredIdentifiers[scope].insert(name);
+                scopeNames[currentScopePath].insert(name);
             }
         }
+        return; // Don't recurse for parameters
     }
 
-    // Recurse on children
+    // Recurse on children for other node types
     for (auto child : node->children)
     {
-        checkIdentifiers(child);
-    }
-
-    // Exit scope if one was entered at this level
-    if (scopeEntered)
-    {
-        symbolTable.exitScope();
+        checkDuplicatesOnly(child);
     }
 }
 
-void SemanticAnalyzer::checkTypes(Node *node)
+void SemanticAnalyzer::checkReturnType(Node *node)
 {
     if (!node)
         return;
 
-    // Check statements
-    if (node->type == "AssignStatement")
+    if (node->type == "ClassDeclaration")
     {
-        if (node->children.size() >= 2)
-        {
-            auto it = node->children.begin();
-            Node *left = *it;
-            Node *right = *(++it);
-            string leftType = getExpressionType(left);
-            string rightType = getExpressionType(right);
+        symbolTable.enterScope(node->value);
 
-            if (!isCompatible(leftType, rightType))
-            {
-                reportError(left->value + " and expression " + right->type + " are of different types", node);
-            }
-        }
-    }
-    else if (node->type == "ArrayAssignStatement")
-    {
-        if (node->children.size() >= 3)
-        {
-            auto it = node->children.begin();
-            string arrayType = getExpressionType(*it);
-            string indexType = getExpressionType(*(++it));
-            string valueType = getExpressionType(*(++it));
+        // CLEAR the IdentifierMap for each new class
+        IdentifierMap.clear();
 
-            if (arrayType != "int[]")
-            {
-                reportError("Array assignment requires array type", node);
-            }
-            if (!isCompatible(indexType, "Int"))
-            {
-                reportError("Array index must be integer", node);
-            }
-            if (!isCompatible(valueType, "Int"))
-            {
-                reportError("Array element must be integer", node);
-            }
-        }
-    }
-    else if (node->type == "IfStatement" || node->type == "WhileStatement")
-    {
-        if (!node->children.empty())
+        // FIRST: Collect all variables in this class scope
+        for (auto child : node->children)
         {
-            string condType = getExpressionType(node->children.front());
-            if (!isCompatible(condType, "Boolean"))
+            if (child->type == "VarDeclarationCL")
             {
-                reportError("Condition must be boolean type", node);
-            }
-        }
-    }
-    else if (node->type == "PrintStatement")
-    {
-        if (!node->children.empty())
-        {
-            string exprType = getExpressionType(node->children.front());
-            if (!isCompatible(exprType, "Int"))
-            {
-                reportError("Print statement requires integer argument", node);
-            }
-        }
-    }
-    else if (node->type == "MethodDeclaration")
-    {
-        if (!node->children.empty())
-        {
-            string declaredReturnType = node->children.front()->type;
-
-            if (node->children.size() >= 2)
-            {
-                string actualReturnType = getExpressionType(node->children.back());
-                if (!isCompatible(declaredReturnType, actualReturnType))
+                for (auto varNode : child->children)
                 {
-                    reportError("Method return type mismatch: expected " + declaredReturnType +
-                                    ", got " + actualReturnType,
-                                node);
+                    if (varNode->type == "VarDeclaration" && varNode->children.size() >= 2)
+                    {
+                        auto it = varNode->children.begin();
+                        string type = (*it)->type;      // First child is type
+                        string name = (*(++it))->value; // Second child is name
+
+                        IdentifierMap.emplace(type, name);
+                        cout << "Added to IdentifierMap: " << name << " -> " << type << endl;
+                    }
                 }
             }
         }
+
+        // SECOND: Now process all children (including methods)
+        for (auto child : node->children)
+        {
+            checkReturnType(child);
+        }
+
+        symbolTable.exitScope();
+        return;
     }
 
-    // Recursively check all children
+    if (node->type == "MethodDeclaration")
+    {
+        // Get the method's declared return type and return expression
+        if (node->children.size() >= 5)
+        {
+            auto it = node->children.begin();
+            Node *returnTypeNode = *it; // First child: declared return type
+            advance(it, 4);             // Move to 5th child
+            Node *returnExpr = *it;     // Fifth child: actual return expression
+
+            string declaredType = returnTypeNode->type; // e.g., "Int"
+            string actualType = "Unknown";
+
+            // If return expression is an identifier, look it up in IdentifierMap
+            cout << "Hej" << returnExpr->type << endl;
+            cout << "xx" << symbolTable.getSymbolType(symbolTable.getCurrentScope(), node) << endl;
+            if (returnExpr->type == "Identifier")
+            {
+                string returnVarName = returnExpr->value; // e.g., "y"
+
+                // Find this variable in IdentifierMap
+                for (auto mapEntry : IdentifierMap)
+                {
+                    if (mapEntry.second == returnVarName) // mapEntry.second is variable name
+                    {
+                        actualType = mapEntry.first; // mapEntry.first is variable type
+                        break;
+                    }
+                }
+            }
+            else if (returnExpr->type == "IntLiteral")
+            {
+                actualType = "Int";
+            }
+            else if (returnExpr->type == "BooleanLiteral" || returnExpr->type == "True" || returnExpr->type == "False")
+            {
+                actualType = "Boolean";
+            }
+            else if (returnExpr->type == "MethodCall")
+            {
+            }
+
+            cout << "Method: " << node->value
+                 << ", declared: " << declaredType
+                 << ", returnType: " << actualType << endl;
+
+            if (!isCompatible(declaredType, actualType))
+            {
+                reportError("semantic (invalid return type)", node);
+            }
+        }
+        return;
+    }
+
+    // Remove the VarDeclaration case since we handle it above
+    // if (node->type == "VarDeclaration") { ... }
+
+    // Generic processing for other node types
     for (auto child : node->children)
     {
-        checkTypes(child);
+        checkReturnType(child);
     }
 }
 
-bool SemanticAnalyzer::checkDuplicates(Node *node)
+bool SemanticAnalyzer::isCompatible(string type1, string type2)
 {
-    bool duplicates = false;
+    // Normalize types
+    if ((type1 == "Int" || type1 == "Integer") && (type2 == "Int" || type2 == "Integer"))
+        return true;
+    if ((type1 == "Boolean" || type1 == "Bool") && (type2 == "Boolean" || type2 == "Bool"))
+        return true;
+    if (type1 == "IntArray" && type2 == "IntArray")
+        return true;
 
-    return duplicates;
-}
-
-bool SemanticAnalyzer::checkExpressions(Node *node)
-{
-    // This functionality is now handled in checkTypes
-    return true;
-}
-
-bool SemanticAnalyzer::checkStatements(Node *node)
-{
-    // This functionality is now handled in checkTypes
-    return true;
-}
-
-bool SemanticAnalyzer::checkMethodDeclaration(Node *node)
-{
-    // This functionality is now handled in checkTypes and checkIdentifiers
-    return true;
+    return type1 == type2;
 }
 
 void SemanticAnalyzer::printSymbolTable()
