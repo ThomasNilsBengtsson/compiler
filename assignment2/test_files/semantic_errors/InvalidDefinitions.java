@@ -55,7 +55,7 @@ class MyClass {
     }
 
 }
-
+ 
 class thatdoExist {
     int a;
 }

@@ -161,18 +161,3 @@ void SymbolTable::buildSymbolTable(Node *node, SymbolTable &symbolTable)
         symbolTable.exitScope();
     }
 }
-
-
-string SymbolTable::getSymbolType(ScopeNode *scope, Node *node)
-{
-    cout << "currentScope: " << getCurrentScopeName() << endl;
-    for (const auto &symbol : scope->symbols)
-    {
-        cout << "symbol.name: " << symbol.name << "     " << "node->value: " << node->value << endl;
-        if (symbol.name == node->value)
-        {
-            return symbol.type;
-        }
-    }
-    return "IDK";
-}

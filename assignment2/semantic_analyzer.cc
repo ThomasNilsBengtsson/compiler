@@ -6,273 +6,401 @@ void SemanticAnalyzer::analyze(Node *ast)
 {
     if (!ast)
         return;
-
+    this->root = ast;
     symbolTable.buildSymbolTable(ast, symbolTable);
-
     checkInvalidDefinitions(ast);
+    checkDuplicateIdentifiers(ast);
 }
+
+void SemanticAnalyzer::checkDuplicateIdentifiers(Node *node){
+    if(!node)
+        return;
+    
+    if(node->type == "Goal"){
+        checkDuplicateIdentifiersClass(node);
+    }
+
+    if(node->type == "ClassDeclaration"){
+        checkDuplicateIdentifiersMethodAndVar(node);
+    }
+
+    if(node->type == "MethodDeclaration"){
+        checkDuplicateIdentifiersParams(node);
+    }
+
+    if (!node->children.empty())
+    {
+        for (auto child : node->children)
+        {
+            parents.emplace_back(node);
+            checkDuplicateIdentifiers(child);
+            parents.pop_back();
+        }
+    }
+}
+
+void SemanticAnalyzer::checkDuplicateIdentifiersClass(Node *node){
+    vector<Node*> classes;
+    for(auto it : node->children){
+        classes.emplace_back(it);
+        if(it->type == "ClassDeclarationList"){
+            for(auto c : it->children){
+                classes.emplace_back(c);
+            }
+        }
+    }
+    for(int i = 0; i < classes.size(); i++){
+        for(int j = i + 1; j < classes.size(); j++){
+            if(classes[i]->value == classes[j]->value){
+                reportError("semantic - duplicate identifier.", classes[j]->children.front());
+            }
+        }
+    }
+}
+
+void SemanticAnalyzer::checkDuplicateIdentifiersMethodAndVar(Node *node){
+    vector<Node*> variables;
+    vector<Node*> methods;
+
+    for(auto it : node->children){
+        if(it->type == "VarDeclarationCL"){
+            for(auto var : it->children){
+                variables.emplace_back(var);
+            }
+        }
+        if(it->type == "MethodDeclarationCL"){
+            for(auto meth : it->children){
+                methods.emplace_back(meth);
+            }
+        }
+    }
+    for(int i = 0; i < variables.size(); i++){
+        for(int j = i + 1; j < variables.size(); j++){
+            cout << node->value << "   " << variables[i]->value << "   " << variables[j]->value << endl;
+            if(variables[i]->value == variables[j]->value){
+                reportError("semantic - duplicate identifier.", variables[j]->children.front());
+            }
+        }
+    }
+    for(int i = 0; i < methods.size(); i++){
+        for(int j = i + 1; j < methods.size(); j++){
+            if(methods[i]->value == methods[j]->value){
+                reportError("semantic - duplicate identifier.", methods[j]->children.front());
+            }
+        }
+    }
+}
+void SemanticAnalyzer::checkDuplicateIdentifiersParams(Node *node){
+    vector <Node*> paramsVar;
+    for(auto it : node->children){
+        if(it->type == "MethodDeclarationParamsOpt"){
+            for(auto p : it->children){
+                if(p->type == "ParameterList"){
+                    for(auto c : p->children){
+                        paramsVar.emplace_back(c->children.back());
+                    }
+                }
+            }
+        }
+        if(it->type == "MethodDeclarationBody"){
+            for(auto x : it->children){
+                if(x->type == "VarDeclaration")
+                    paramsVar.emplace_back(x);
+            }
+        }
+    }
+    for(int i = 0; i < paramsVar.size(); i++){
+        for(int j = i + 1; j < paramsVar.size(); j++){
+            if(paramsVar[i]->value == paramsVar[j]->value){
+                reportError("semantic - duplicate identifier.", paramsVar[j]);
+            }
+        }
+    }
+}
+
 
 void SemanticAnalyzer::checkInvalidDefinitions(Node *node)
 {
     if (!node)
         return;
-
-    // Remove all manual scope management - just traverse and check
-    if (node->type == "Identifier")
+    if (node->type == "AssignStatement")
     {
-        // Use findSymbol which searches all scopes, not just current scope
-        vector<Symbol *> symbols = symbolTable.findSymbol(node->value);
-        
-        if (symbols.empty())
-        {
-            cout << "Symbol '" << node->value << "' not found" << endl;
-        }
-        else
-        {
-            cout << "Found symbol: " << node->value << " of type: " << symbols[0]->type << endl;
-        }
+
+        invalidDefinitionsVariable(node);
+        invalidDefinitionsMethod(node);
+    }
+    if(node->type == "VarDeclaration" && node->children.front()->children.front()){
+        invalidDefinitionClass(node);
     }
 
-    // Just traverse - no scope management needed
-    for (auto child : node->children)
+    if (!node->children.empty())
     {
-        checkInvalidDefinitions(child);
+        for (auto child : node->children)
+        {
+            parents.emplace_back(node);
+            checkInvalidDefinitions(child);
+            parents.pop_back();
+        }
     }
 }
 
-void SemanticAnalyzer::checkDuplicatesOnly(Node *node)
+void SemanticAnalyzer::invalidDefinitionsVariable(Node *node)
 {
-    if (!node)
-        return;
+    Node *leftNodeIdentifier = nullptr;
+    Node *rightNodeIdentifier = nullptr;
 
-    static std::unordered_map<string, std::unordered_set<string>> scopeNames;
-    static string currentScopePath = "";
-    static bool initialized = false;
-    static int classCounter = 0; // Add this counter
-
-    if (!initialized)
+    for (auto it : node->children)
     {
-        scopeNames.clear();
-        currentScopePath = "";
-        classCounter = 0; // Reset counter
-        initialized = true;
-    }
-
-    if (node->type == "ClassDeclaration" || node->type == "MainClass")
-    {
-        string name = node->value;
-        if (scopeNames[currentScopePath].count(name))
+        if (it->type == "Identifier")
         {
-            reportError("semantic - already Declared Class: '" + name + "'", node);
-        }
-        else
-        {
-            scopeNames[currentScopePath].insert(name);
-        }
-
-        string previousPath = currentScopePath;
-        // Make each class instance unique
-        currentScopePath = currentScopePath + "::" + name + "_" + to_string(++classCounter);
-
-        for (auto child : node->children)
-        {
-            checkDuplicatesOnly(child);
-        }
-
-        currentScopePath = previousPath;
-        return;
-    }
-    else if (node->type == "MethodDeclaration")
-    {
-        string name = node->value;
-        if (scopeNames[currentScopePath].count(name))
-        {
-            reportError("semantic - already Declared Function: '" + name + "'", node);
-        }
-        else
-        {
-            scopeNames[currentScopePath].insert(name);
-        }
-
-        string previousPath = currentScopePath;
-        currentScopePath = currentScopePath + "::" + name;
-
-        for (auto child : node->children)
-        {
-            checkDuplicatesOnly(child);
-        }
-
-        currentScopePath = previousPath;
-        return;
-    }
-    else if (node->type == "VarDeclaration")
-    {
-        string name = node->value;
-        if (node->children.size() >= 2)
-        {
-            auto it = node->children.begin();
-            name = (*(++it))->value; // Second child is the variable name
-        }
-
-        if (scopeNames[currentScopePath].count(name))
-        {
-            cout << currentScopePath << endl;
-            reportError("semantic - already Declared variable: '" + name + "'", node);
-        }
-        else
-        {
-            scopeNames[currentScopePath].insert(name);
-        }
-        return; // Don't recurse for variable declarations
-    }
-    else if (node->type == "Parameter")
-    {
-        string name = "";
-        if (node->children.size() >= 2)
-        {
-            auto it = node->children.begin();
-            name = (*(++it))->value; // Second child is the parameter name
-        }
-
-        if (!name.empty())
-        {
-            if (scopeNames[currentScopePath].count(name))
+            if (leftNodeIdentifier == nullptr)
             {
-                reportError("semantic - already Declared parameter: '" + name + "'", node);
+                leftNodeIdentifier = it;
             }
-            else
+            else if (rightNodeIdentifier == nullptr)
             {
-                scopeNames[currentScopePath].insert(name);
+                rightNodeIdentifier = it;
+                break;
             }
         }
-        return; // Don't recurse for parameters
     }
 
-    // Recurse on children for other node types
-    for (auto child : node->children)
+    bool leftDeclared = false;
+    bool rightDeclared = false;
+    Node *leftType = nullptr;
+    Node *rightType = nullptr;
+
+    if (parents.size() > 0)
     {
-        checkDuplicatesOnly(child);
-    }
-}
-
-void SemanticAnalyzer::checkReturnType(Node *node)
-{
-    if (!node)
-        return;
-
-    if (node->type == "ClassDeclaration")
-    {
-        symbolTable.enterScope(node->value);
-
-        // CLEAR the IdentifierMap for each new class
-        IdentifierMap.clear();
-
-        // FIRST: Collect all variables in this class scope
-        for (auto child : node->children)
+        for (int i = parents.size() - 1; i >= 0; i--)
         {
-            if (child->type == "VarDeclarationCL")
+            Node *parent = parents[i];
+            for (auto it : parent->children)
             {
-                for (auto varNode : child->children)
+                if (it->type == "VarDeclarationCL")
                 {
-                    if (varNode->type == "VarDeclaration" && varNode->children.size() >= 2)
+                    for (auto child : it->children)
                     {
-                        auto it = varNode->children.begin();
-                        string type = (*it)->type;      // First child is type
-                        string name = (*(++it))->value; // Second child is name
-
-                        IdentifierMap.emplace(type, name);
-                        cout << "Added to IdentifierMap: " << name << " -> " << type << endl;
+                        if (leftNodeIdentifier && child->value == leftNodeIdentifier->value)
+                        {
+                            leftDeclared = true;
+                            for (auto x : child->children)
+                            {
+                                leftType = x;
+                                break;
+                            }
+                        }
+                        if (rightNodeIdentifier && child->value == rightNodeIdentifier->value)
+                        {
+                            rightDeclared = true;
+                            for (auto x : child->children)
+                            {
+                                rightType = x;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (it->type == "MethodDeclaration")
+                {
+                    for (auto z : it->children)
+                    {
+                        if (z->type == "MethodDeclarationParamsOpt")
+                        {
+                            for (auto x : z->children)
+                            {
+                                if (x->type == "ParameterList")
+                                {
+                                    for (auto n : x->children)
+                                    {
+                                        if (n->type == "Parameter")
+                                        {
+                                            for (auto c : n->children)
+                                            {
+                                                if (leftNodeIdentifier && c->value == leftNodeIdentifier->value)
+                                                {
+                                                    leftDeclared = true;
+                                                }
+                                                if (rightNodeIdentifier && c->value == rightNodeIdentifier->value)
+                                                {
+                                                    rightDeclared = true;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
-
-        // SECOND: Now process all children (including methods)
-        for (auto child : node->children)
-        {
-            checkReturnType(child);
-        }
-
-        symbolTable.exitScope();
-        return;
     }
 
-    if (node->type == "MethodDeclaration")
+    if (leftNodeIdentifier && !leftDeclared)
     {
-        // Get the method's declared return type and return expression
-        if (node->children.size() >= 5)
+        reportError("semantic - undeclared variable.", leftNodeIdentifier);
+    }
+    if (rightNodeIdentifier && !rightDeclared)
+    {
+        reportError("semantic - undeclared variable.", rightNodeIdentifier);
+    }
+    if (leftType && rightType && leftType->type != rightType->type)
+    {
+        reportError("semantic - type mismatch.", leftNodeIdentifier);
+    }
+}
+
+void SemanticAnalyzer::invalidDefinitionsMethod(Node *node)
+{
+    Node *methodNodeIdentifier = nullptr;
+    Node *varNodeIdentifier = nullptr;
+    bool isThis = false;
+
+    for (auto it : node->children)
+    {
+        if (it->type == "Identifier")
         {
-            auto it = node->children.begin();
-            Node *returnTypeNode = *it; // First child: declared return type
-            advance(it, 4);             // Move to 5th child
-            Node *returnExpr = *it;     // Fifth child: actual return expression
+            varNodeIdentifier = it;
+        }
 
-            string declaredType = returnTypeNode->type; // e.g., "Int"
-            string actualType = "Unknown";
-
-            // If return expression is an identifier, look it up in IdentifierMap
-            cout << "Hej" << returnExpr->type << endl;
-            cout << "xx" << symbolTable.getSymbolType(symbolTable.getCurrentScope(), node) << endl;
-            if (returnExpr->type == "Identifier")
+        if (it->type == "MethodCall")
+        {
+            for (auto child : it->children)
             {
-                string returnVarName = returnExpr->value; // e.g., "y"
-
-                // Find this variable in IdentifierMap
-                for (auto mapEntry : IdentifierMap)
+                if (child->type == "Identifier")
+                    methodNodeIdentifier = child;
+                if (child->type == "This")
                 {
-                    if (mapEntry.second == returnVarName) // mapEntry.second is variable name
+                    isThis = true;
+                }
+            }
+        }
+        // functﬁion som letar igenom alla klasser
+    }
+    string methodType;
+    if (methodNodeIdentifier)
+    {
+        methodType = findMethodCallType(methodNodeIdentifier->value, root);
+    }
+
+    bool methodDeclared = false;
+    string leftVarType;
+    if (parents.size() > 0)
+    {
+        for (int i = parents.size() - 1; i >= 0; i--)
+        {
+            Node *parent = parents[i];
+            for (auto it : parent->children)
+            {
+                if (isThis)
+                {
+                    if (it->type == "MethodDeclarationCL")
                     {
-                        actualType = mapEntry.first; // mapEntry.first is variable type
-                        break;
+                        for (auto c : it->children)
+                        {
+                            if (methodNodeIdentifier && c->value == methodNodeIdentifier->value)
+                            {
+                                methodDeclared = true;
+                            }
+                        }
+                        if (!methodDeclared)
+                        {
+                            break;
+                        }
+                    }
+                    else if (it->type == "VarDeclarationCL")
+                    {
+                        for (auto c : it->children)
+                        {
+                            if (c->value == varNodeIdentifier->value)
+                            {
+                                leftVarType = c->children.front()->type;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if (it->type == "MethodDeclarationCL")
+                    {
+                        for (auto c : it->children)
+                        {
+                            if (methodNodeIdentifier && c->value == methodNodeIdentifier->value)
+                            {
+                                methodDeclared = true;
+                            }
+                        }
+                    }
+                    else if (it->type == "VarDeclarationCL")
+                    {
+                        for (auto c : it->children)
+                        {
+                            if (c->value == varNodeIdentifier->value)
+                            {
+                                leftVarType = c->children.front()->type;
+                            }
+                        }
+                    }
+                    else if (it->type == "ClassDeclarationList")
+                    {
+                        for (auto c : it->children)
+                        {
+                            if (c->type == "ClassDeclaration")
+                            {
+                                for (auto x : c->children)
+                                {
+                                    if (x->type == "MethodDeclarationCL")
+                                    {
+                                        for (auto z : x->children)
+                                        {
+                                            if (methodNodeIdentifier && z->value == methodNodeIdentifier->value)
+                                                methodDeclared = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
-            else if (returnExpr->type == "IntLiteral")
-            {
-                actualType = "Int";
-            }
-            else if (returnExpr->type == "BooleanLiteral" || returnExpr->type == "True" || returnExpr->type == "False")
-            {
-                actualType = "Boolean";
-            }
-            else if (returnExpr->type == "MethodCall")
-            {
-            }
+        }
+        bool undeclared = false;
+        if (methodNodeIdentifier && !methodDeclared)
+        {
+            reportError("semantic - undeclared method.", methodNodeIdentifier);
+            undeclared = true;
+        }
+        if (!undeclared && methodNodeIdentifier && methodType != leftVarType)
+        {
+            reportError("semantic - not matching types.", varNodeIdentifier);
+        }
+    }
+}
 
-            cout << "Method: " << node->value
-                 << ", declared: " << declaredType
-                 << ", returnType: " << actualType << endl;
 
-            if (!isCompatible(declaredType, actualType))
-            {
-                reportError("semantic (invalid return type)", node);
+void SemanticAnalyzer::invalidDefinitionClass(Node *node){
+    Node* className = node->children.front()->children.front();
+    bool declaredClass = false;
+    if(parents.size() > 0){
+        for(int i = parents.size() - 1; i >= 0; i--){
+            Node *parent = parents[i];
+            if(parent->type == "ClassDeclarationList"){
+                for(auto it : parent->children){
+                    if(it->value == className->value){
+                        declaredClass = true;
+                    }
+                }
             }
         }
-        return;
     }
+    if(!declaredClass && className){
+        reportError("semantic - undeclared class.", className);
 
-    // Remove the VarDeclaration case since we handle it above
-    // if (node->type == "VarDeclaration") { ... }
-
-    // Generic processing for other node types
-    for (auto child : node->children)
-    {
-        checkReturnType(child);
     }
 }
 
-bool SemanticAnalyzer::isCompatible(string type1, string type2)
-{
-    // Normalize types
-    if ((type1 == "Int" || type1 == "Integer") && (type2 == "Int" || type2 == "Integer"))
-        return true;
-    if ((type1 == "Boolean" || type1 == "Bool") && (type2 == "Boolean" || type2 == "Bool"))
-        return true;
-    if (type1 == "IntArray" && type2 == "IntArray")
-        return true;
 
-    return type1 == type2;
-}
 
 void SemanticAnalyzer::printSymbolTable()
 {
@@ -283,8 +411,39 @@ void SemanticAnalyzer::printSymbolTable()
 
 void SemanticAnalyzer::reportError(string message, Node *node)
 {
-    string location = node ? " at line " + to_string(node->children.front()->lineno) : "";
+    string location = node ? " at line " + to_string(node->lineno) : "";
     string error = "@error" + location + ": " + message;
     errors.push_back(error);
     cerr << error << endl;
+}
+
+string SemanticAnalyzer::findMethodCallType(string value, Node *root)
+{
+    string type;
+    for (auto it : root->children)
+    {
+        if (it->type == "ClassDeclarationList")
+        {
+            for (auto child : it->children)
+            {
+                if (child->type == "ClassDeclaration")
+                {
+                    for (auto k : child->children)
+                    {
+                        if (k->type == "MethodDeclarationCL")
+                        {
+                            for (auto t : k->children)
+                            {
+                                if (t->value == value)
+                                {
+                                    return t->children.front()->type;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return "Did not find method call";
 }

@@ -17,6 +17,8 @@ private:
     std::unordered_map<ScopeNode *, std::unordered_set<std::string>> declaredIdentifiers;
     // For checkReturnType
     std::map<string, string> IdentifierMap;
+    vector<Node*> parents;
+    Node* root;
 
 public:
     SemanticAnalyzer() : symbolTable() {}
@@ -24,15 +26,19 @@ public:
 
     void analyze(Node *ast);
 
-    void checkDuplicatesOnly(Node *node);
-
-    void checkReturnType(Node *node);
-    string getExpressionType(Node *node);
-    bool isCompatible(string type1, string type2);
+    void checkDuplicateIdentifiers(Node* node);
+    void checkDuplicateIdentifiersClass(Node* node);
+    void checkDuplicateIdentifiersMethodAndVar(Node* node);
+    void checkDuplicateIdentifiersParams(Node* node);
 
     void checkInvalidDefinitions(Node *node);
+    void invalidDefinitionsVariable(Node *node);
+    void invalidDefinitionsMethod(Node *node);
+    void invalidDefinitionClass(Node* node);
+    
 
     void printSymbolTable();
     void reportError(string message, Node *node);
+    string findMethodCallType(string value, Node* root);
 };
 #endif
