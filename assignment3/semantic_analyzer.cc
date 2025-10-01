@@ -76,7 +76,6 @@ void SemanticAnalyzer::checkDuplicateIdentifiersMethodAndVar(Node *node){
     }
     for(int i = 0; i < variables.size(); i++){
         for(int j = i + 1; j < variables.size(); j++){
-            cout << node->value << "   " << variables[i]->value << "   " << variables[j]->value << endl;
             if(variables[i]->value == variables[j]->value){
                 reportError("semantic - duplicate identifier.", variables[j]->children.front());
             }
@@ -148,9 +147,11 @@ void SemanticAnalyzer::invalidDefinitionsVariable(Node *node)
 {
     Node *leftNodeIdentifier = nullptr;
     Node *rightNodeIdentifier = nullptr;
+    Node * OGNode = nullptr;
 
     for (auto it : node->children)
     {
+        OGNode = node;
         if (it->type == "Identifier")
         {
             if (leftNodeIdentifier == nullptr)
@@ -177,7 +178,10 @@ void SemanticAnalyzer::invalidDefinitionsVariable(Node *node)
             Node *parent = parents[i];
             for (auto it : parent->children)
             {
-                if (it->type == "VarDeclarationCL")
+                if(it == OGNode){
+                    break;
+                }
+                if (it->type == "VarDeclarationCL" || it->type == "VarDeclaration")
                 {
                     for (auto child : it->children)
                     {
@@ -233,6 +237,7 @@ void SemanticAnalyzer::invalidDefinitionsVariable(Node *node)
                         }
                     }
                 }
+
             }
         }
     }
@@ -309,7 +314,7 @@ void SemanticAnalyzer::invalidDefinitionsMethod(Node *node)
                             break;
                         }
                     }
-                    else if (it->type == "VarDeclarationCL")
+                    else if (it->type == "VarDeclarationCL" || it->type == "VarDeclaration")
                     {
                         for (auto c : it->children)
                         {
@@ -332,7 +337,7 @@ void SemanticAnalyzer::invalidDefinitionsMethod(Node *node)
                             }
                         }
                     }
-                    else if (it->type == "VarDeclarationCL")
+                    else if (it->type == "VarDeclarationCL" || it->type == "VarDeclaration")
                     {
                         for (auto c : it->children)
                         {
@@ -373,6 +378,7 @@ void SemanticAnalyzer::invalidDefinitionsMethod(Node *node)
         }
         if (!undeclared && methodNodeIdentifier && methodType != leftVarType)
         {
+            cout << leftVarType << "    " << methodType << endl;
             reportError("semantic - not matching types.", varNodeIdentifier);
         }
     }
