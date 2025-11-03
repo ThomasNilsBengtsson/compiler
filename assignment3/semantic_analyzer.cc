@@ -12,19 +12,23 @@ void SemanticAnalyzer::analyze(Node *ast)
     checkDuplicateIdentifiers(ast);
 }
 
-void SemanticAnalyzer::checkDuplicateIdentifiers(Node *node){
-    if(!node)
+void SemanticAnalyzer::checkDuplicateIdentifiers(Node *node)
+{
+    if (!node)
         return;
-    
-    if(node->type == "Goal"){
+
+    if (node->type == "Goal")
+    {
         checkDuplicateIdentifiersClass(node);
     }
 
-    if(node->type == "ClassDeclaration"){
+    if (node->type == "ClassDeclaration")
+    {
         checkDuplicateIdentifiersMethodAndVar(node);
     }
 
-    if(node->type == "MethodDeclaration"){
+    if (node->type == "MethodDeclaration")
+    {
         checkDuplicateIdentifiersParams(node);
     }
 
@@ -39,84 +43,113 @@ void SemanticAnalyzer::checkDuplicateIdentifiers(Node *node){
     }
 }
 
-void SemanticAnalyzer::checkDuplicateIdentifiersClass(Node *node){
-    vector<Node*> classes;
-    for(auto it : node->children){
+void SemanticAnalyzer::checkDuplicateIdentifiersClass(Node *node)
+{
+    vector<Node *> classes;
+    for (auto it : node->children)
+    {
         classes.emplace_back(it);
-        if(it->type == "ClassDeclarationList"){
-            for(auto c : it->children){
+        if (it->type == "ClassDeclarationList")
+        {
+            for (auto c : it->children)
+            {
                 classes.emplace_back(c);
             }
         }
     }
-    for(int i = 0; i < classes.size(); i++){
-        for(int j = i + 1; j < classes.size(); j++){
-            if(classes[i]->value == classes[j]->value){
+    for (int i = 0; i < classes.size(); i++)
+    {
+        for (int j = i + 1; j < classes.size(); j++)
+        {
+            if (classes[i]->value == classes[j]->value)
+            {
                 reportError("semantic - duplicate identifier.", classes[j]->children.front());
             }
         }
     }
 }
 
-void SemanticAnalyzer::checkDuplicateIdentifiersMethodAndVar(Node *node){
-    vector<Node*> variables;
-    vector<Node*> methods;
+void SemanticAnalyzer::checkDuplicateIdentifiersMethodAndVar(Node *node)
+{
+    vector<Node *> variables;
+    vector<Node *> methods;
 
-    for(auto it : node->children){
-        if(it->type == "VarDeclarationCL"){
-            for(auto var : it->children){
+    for (auto it : node->children)
+    {
+        if (it->type == "VarDeclarationCL")
+        {
+            for (auto var : it->children)
+            {
                 variables.emplace_back(var);
             }
         }
-        if(it->type == "MethodDeclarationCL"){
-            for(auto meth : it->children){
+        if (it->type == "MethodDeclarationCL")
+        {
+            for (auto meth : it->children)
+            {
                 methods.emplace_back(meth);
             }
         }
     }
-    for(int i = 0; i < variables.size(); i++){
-        for(int j = i + 1; j < variables.size(); j++){
-            if(variables[i]->value == variables[j]->value){
+    for (int i = 0; i < variables.size(); i++)
+    {
+        for (int j = i + 1; j < variables.size(); j++)
+        {
+            if (variables[i]->value == variables[j]->value)
+            {
                 reportError("semantic - duplicate identifier.", variables[j]->children.front());
             }
         }
     }
-    for(int i = 0; i < methods.size(); i++){
-        for(int j = i + 1; j < methods.size(); j++){
-            if(methods[i]->value == methods[j]->value){
+    for (int i = 0; i < methods.size(); i++)
+    {
+        for (int j = i + 1; j < methods.size(); j++)
+        {
+            if (methods[i]->value == methods[j]->value)
+            {
                 reportError("semantic - duplicate identifier.", methods[j]->children.front());
             }
         }
     }
 }
-void SemanticAnalyzer::checkDuplicateIdentifiersParams(Node *node){
-    vector <Node*> paramsVar;
-    for(auto it : node->children){
-        if(it->type == "MethodDeclarationParamsOpt"){
-            for(auto p : it->children){
-                if(p->type == "ParameterList"){
-                    for(auto c : p->children){
+void SemanticAnalyzer::checkDuplicateIdentifiersParams(Node *node)
+{
+    vector<Node *> paramsVar;
+    for (auto it : node->children)
+    {
+        if (it->type == "MethodDeclarationParamsOpt")
+        {
+            for (auto p : it->children)
+            {
+                if (p->type == "ParameterList")
+                {
+                    for (auto c : p->children)
+                    {
                         paramsVar.emplace_back(c->children.back());
                     }
                 }
             }
         }
-        if(it->type == "MethodDeclarationBody"){
-            for(auto x : it->children){
-                if(x->type == "VarDeclaration")
+        if (it->type == "MethodDeclarationBody")
+        {
+            for (auto x : it->children)
+            {
+                if (x->type == "VarDeclaration")
                     paramsVar.emplace_back(x);
             }
         }
     }
-    for(int i = 0; i < paramsVar.size(); i++){
-        for(int j = i + 1; j < paramsVar.size(); j++){
-            if(paramsVar[i]->value == paramsVar[j]->value){
+    for (int i = 0; i < paramsVar.size(); i++)
+    {
+        for (int j = i + 1; j < paramsVar.size(); j++)
+        {
+            if (paramsVar[i]->value == paramsVar[j]->value)
+            {
                 reportError("semantic - duplicate identifier.", paramsVar[j]);
             }
         }
     }
 }
-
 
 void SemanticAnalyzer::checkInvalidDefinitions(Node *node)
 {
@@ -128,7 +161,8 @@ void SemanticAnalyzer::checkInvalidDefinitions(Node *node)
         invalidDefinitionsVariable(node);
         invalidDefinitionsMethod(node);
     }
-    if(node->type == "VarDeclaration" && node->children.front()->children.front()){
+    if (node->type == "VarDeclaration" && node->children.front()->children.front())
+    {
         invalidDefinitionClass(node);
     }
 
@@ -147,11 +181,10 @@ void SemanticAnalyzer::invalidDefinitionsVariable(Node *node)
 {
     Node *leftNodeIdentifier = nullptr;
     Node *rightNodeIdentifier = nullptr;
-    Node * OGNode = nullptr;
+    Node *OGNode = node;
 
     for (auto it : node->children)
     {
-        OGNode = node;
         if (it->type == "Identifier")
         {
             if (leftNodeIdentifier == nullptr)
@@ -170,21 +203,23 @@ void SemanticAnalyzer::invalidDefinitionsVariable(Node *node)
     bool rightDeclared = false;
     Node *leftType = nullptr;
     Node *rightType = nullptr;
-
     if (parents.size() > 0)
     {
         for (int i = parents.size() - 1; i >= 0; i--)
         {
             Node *parent = parents[i];
+            if (parent->type == "ClassDeclarationList")
+                break;
+            
             for (auto it : parent->children)
             {
-                if(it == OGNode){
-                    break;
-                }
-                if (it->type == "VarDeclarationCL" || it->type == "VarDeclaration")
+
+                if (it->type == "VarDeclarationCL" || it->type == "MethodDeclarationBody")
                 {
                     for (auto child : it->children)
                     {
+                        if(OGNode == child)
+                            break;
                         if (leftNodeIdentifier && child->value == leftNodeIdentifier->value)
                         {
                             leftDeclared = true;
@@ -237,7 +272,6 @@ void SemanticAnalyzer::invalidDefinitionsVariable(Node *node)
                         }
                     }
                 }
-
             }
         }
     }
@@ -286,11 +320,12 @@ void SemanticAnalyzer::invalidDefinitionsMethod(Node *node)
     string methodType;
     if (methodNodeIdentifier)
     {
-        methodType = findMethodCallType(methodNodeIdentifier->value, root);
+        methodType = findMethodCallType(methodNodeIdentifier->value, root); // FEL HÄR NÄR MAN HAR PARAMS
     }
-
+    
     bool methodDeclared = false;
     string leftVarType;
+    string parType;
     if (parents.size() > 0)
     {
         for (int i = parents.size() - 1; i >= 0; i--)
@@ -314,7 +349,7 @@ void SemanticAnalyzer::invalidDefinitionsMethod(Node *node)
                             break;
                         }
                     }
-                    else if (it->type == "VarDeclarationCL" || it->type == "VarDeclaration")
+                    else if (it->type == "VarDeclarationCL" || it->type == "MethodDeclarationBody")
                     {
                         for (auto c : it->children)
                         {
@@ -337,15 +372,34 @@ void SemanticAnalyzer::invalidDefinitionsMethod(Node *node)
                             }
                         }
                     }
-                    else if (it->type == "VarDeclarationCL" || it->type == "VarDeclaration")
+                    else if (it->type == "VarDeclarationCL" || it->type == "MethodDeclarationBody")
                     {
                         for (auto c : it->children)
                         {
                             if (c->value == varNodeIdentifier->value)
                             {
-                                leftVarType = c->children.front()->type;
+                                if(c->children.front()->type != "Identifier")
+                                    leftVarType = c->children.front()->type;
+                                else if(c->children.front()->type == "Identifier")
+                                    leftVarType = c->children.front()->children.front()->value;                            }
+                        }
+                    }
+                    else if (it->type == "MethodDeclarationParamsOpt" ){
+                        for(auto c : it->children){
+                            for(auto k : c->children){
+                                for(auto p : k->children){
+                                    if(!p->children.empty()){
+                                        parType = p->children.back()->value;
+
+                                    }
+                                    if(p->value == varNodeIdentifier->value){
+                                        leftVarType = parType;
+                                    }
+                                        
+                                }
                             }
                         }
+
                     }
                     else if (it->type == "ClassDeclarationList")
                     {
@@ -384,29 +438,32 @@ void SemanticAnalyzer::invalidDefinitionsMethod(Node *node)
     }
 }
 
-
-void SemanticAnalyzer::invalidDefinitionClass(Node *node){
-    Node* className = node->children.front()->children.front();
+void SemanticAnalyzer::invalidDefinitionClass(Node *node)
+{
+    Node *className = node->children.front()->children.front();
     bool declaredClass = false;
-    if(parents.size() > 0){
-        for(int i = parents.size() - 1; i >= 0; i--){
+    if (parents.size() > 0)
+    {
+        for (int i = parents.size() - 1; i >= 0; i--)
+        {
             Node *parent = parents[i];
-            if(parent->type == "ClassDeclarationList"){
-                for(auto it : parent->children){
-                    if(it->value == className->value){
+            if (parent->type == "ClassDeclarationList")
+            {
+                for (auto it : parent->children)
+                {
+                    if (it->value == className->value)
+                    {
                         declaredClass = true;
                     }
                 }
             }
         }
     }
-    if(!declaredClass && className){
+    if (!declaredClass && className)
+    {
         reportError("semantic - undeclared class.", className);
-
     }
 }
-
-
 
 void SemanticAnalyzer::printSymbolTable()
 {
@@ -441,8 +498,11 @@ string SemanticAnalyzer::findMethodCallType(string value, Node *root)
                             for (auto t : k->children)
                             {
                                 if (t->value == value)
-                                {
-                                    return t->children.front()->type;
+                                {                  
+                                    if(t->children.front()->type != "Identifier")
+                                        return t->children.front()->type;
+                                    else if(t->children.front()->type == "Identifier")
+                                        return t->children.front()->children.front()->value;
                                 }
                             }
                         }

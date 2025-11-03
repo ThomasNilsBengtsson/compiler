@@ -2,6 +2,7 @@
 #include "parser.tab.hh"
 #include "symbol_table.h"
 #include "semantic_analyzer.hh"
+#include "TAC.hh"
 
 extern Node *root;
 extern FILE *yyin;
@@ -69,10 +70,16 @@ int main(int argc, char **argv)
 				ST.buildSymbolTable(root, ST);
 				printf("\n\nSymbol Table: \n");
 				ST.printTable(ST.getCurrentScope());
-
+				
+				
 				// Perform semantic analysis
 				SemanticAnalyzer semanticAnalyzer(ST);
 				semanticAnalyzer.analyze(root);
+
+				printf("\n\nTesting TAC:\n");
+				TAC tac;
+				tac.generate(root);
+                tac.printTAC();
 			}
 			catch (...)
 			{
