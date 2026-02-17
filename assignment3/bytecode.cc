@@ -30,7 +30,6 @@ void BytecodeGenerator::translateTAC(const TAC& tac, MethodBytecode& method) {
         }
 
         case TACOp::ADD: {
-            // x = y + z  ->  iload [y]; iload [z]; iadd; istore [x]
             int idx1 = method.getOrCreateVar(tac.arg1);
             int idx2 = method.getOrCreateVar(tac.arg2);
             method.instructions.push_back("iload " + to_string(idx1));
@@ -130,7 +129,6 @@ void BytecodeGenerator::translateTAC(const TAC& tac, MethodBytecode& method) {
         }
 
         case TACOp::NOT: {
-            // x = !y  ->  iload [y]; inot; istore [x]
             int srcIdx = method.getOrCreateVar(tac.arg1);
             method.instructions.push_back("iload " + to_string(srcIdx));
             method.instructions.push_back("inot");
@@ -140,7 +138,6 @@ void BytecodeGenerator::translateTAC(const TAC& tac, MethodBytecode& method) {
         }
 
         case TACOp::PRINT: {
-            // print x  ->  iload [x]; print
             int idx = method.getOrCreateVar(tac.result);
             method.instructions.push_back("iload " + to_string(idx));
             method.instructions.push_back("print");
@@ -148,13 +145,11 @@ void BytecodeGenerator::translateTAC(const TAC& tac, MethodBytecode& method) {
         }
 
         case TACOp::JUMP: {
-            // goto L  ->  goto L
             method.instructions.push_back("goto " + tac.result);
             break;
         }
 
         case TACOp::COND_JUMP: {
-            // iffalse x goto L  ->  iload [x]; iffalse goto L
             int idx = method.getOrCreateVar(tac.arg1);
             method.instructions.push_back("iload " + to_string(idx));
             method.instructions.push_back("iffalse goto " + tac.result);
@@ -162,14 +157,14 @@ void BytecodeGenerator::translateTAC(const TAC& tac, MethodBytecode& method) {
         }
 
         case TACOp::PARAM: {
-            // param x  ->  iload [x]  (push parameter onto stack)
+            // Push parameter onto data stack for callee
             int idx = method.getOrCreateVar(tac.result);
             method.instructions.push_back("iload " + to_string(idx));
             break;
         }
 
         case TACOp::CALL: {
-            // x = call method n  ->  invokevirtual method n; istore [x]
+            // invokevirtual QualifiedMethodName numArgs
             method.instructions.push_back("invokevirtual " + tac.arg1 + " " + to_string(tac.numArgs));
             int dstIdx = method.getOrCreateVar(tac.result);
             method.instructions.push_back("istore " + to_string(dstIdx));
@@ -177,7 +172,6 @@ void BytecodeGenerator::translateTAC(const TAC& tac, MethodBytecode& method) {
         }
 
         case TACOp::RETURN: {
-            // return x  ->  iload [x]; ireturn
             if (!tac.result.empty()) {
                 int idx = method.getOrCreateVar(tac.result);
                 method.instructions.push_back("iload " + to_string(idx));
@@ -186,55 +180,19 @@ void BytecodeGenerator::translateTAC(const TAC& tac, MethodBytecode& method) {
             break;
         }
 
-        case TACOp::ARRAY_ACCESS: {
-            // x = y[z]  ->  iload [y]; iload [z]; iaload; istore [x]
-            int arrIdx = method.getOrCreateVar(tac.arg1);
-            int indexIdx = method.getOrCreateVar(tac.arg2);
-            method.instructions.push_back("iload " + to_string(arrIdx));
-            method.instructions.push_back("iload " + to_string(indexIdx));
-            method.instructions.push_back("iaload");
-            int dstIdx = method.getOrCreateVar(tac.result);
-            method.instructions.push_back("istore " + to_string(dstIdx));
-            break;
-        }
-
-        case TACOp::ARRAY_ASSIGN: {
-            // x[y] = z  ->  iload [x]; iload [y]; iload [z]; iastore
-            int arrIdx = method.getOrCreateVar(tac.result);
-            int indexIdx = method.getOrCreateVar(tac.arg1);
-            int valIdx = method.getOrCreateVar(tac.arg2);
-            method.instructions.push_back("iload " + to_string(arrIdx));
-            method.instructions.push_back("iload " + to_string(indexIdx));
-            method.instructions.push_back("iload " + to_string(valIdx));
-            method.instructions.push_back("iastore");
-            break;
-        }
-
-        case TACOp::ARRAY_LENGTH: {
-            // x = length y  ->  iload [y]; arraylength; istore [x]
-            int arrIdx = method.getOrCreateVar(tac.arg1);
-            method.instructions.push_back("iload " + to_string(arrIdx));
-            method.instructions.push_back("arraylength");
-            int dstIdx = method.getOrCreateVar(tac.result);
-            method.instructions.push_back("istore " + to_string(dstIdx));
-            break;
-        }
-
-        case TACOp::NEW_ARRAY: {
-            // x = new int[y]  ->  iload [y]; newarray; istore [x]
-            int sizeIdx = method.getOrCreateVar(tac.arg1);
-            method.instructions.push_back("iload " + to_string(sizeIdx));
-            method.instructions.push_back("newarray");
-            int dstIdx = method.getOrCreateVar(tac.result);
-            method.instructions.push_back("istore " + to_string(dstIdx));
-            break;
-        }
-
         case TACOp::NEW_OBJECT: {
-            // x = new Class  ->  new Class; istore [x]
+            // new ClassName -> pushes object reference onto stack, store in local
             method.instructions.push_back("new " + tac.arg1);
             int dstIdx = method.getOrCreateVar(tac.result);
             method.instructions.push_back("istore " + to_string(dstIdx));
+            break;
+        }
+
+        case TACOp::ARRAY_ACCESS:
+        case TACOp::ARRAY_ASSIGN:
+        case TACOp::ARRAY_LENGTH:
+        case TACOp::NEW_ARRAY: {
+            // Arrays disregarded for bytecode generation (Part 2 assumption)
             break;
         }
 
@@ -257,8 +215,6 @@ void BytecodeGenerator::translateBlock(BasicBlock* block, MethodBytecode& method
     // If this is a conditional block (has both trueExit and falseExit),
     // and the trueExit is not the next block, add explicit goto
     if (block->trueExit && block->falseExit) {
-        // The iffalse instruction already jumps to falseExit
-        // We need to add goto trueExit if it's not the next block
         if (block->trueExit != nextBlock) {
             method.instructions.push_back("goto " + block->trueExit->label);
         }
@@ -269,9 +225,25 @@ void BytecodeGenerator::translateMethod(MethodCFG* cfg) {
     MethodBytecode method;
     method.name = cfg->name;
 
-    // Pre-register parameters with indices
+    // Build full parameter list: "this" first (for non-main methods), then declared params
+    vector<string> allParams;
+    bool isMainMethod = (cfg->name.find(".main") != string::npos && cfg->parameters.empty());
+    if (!isMainMethod) {
+        allParams.push_back("this");
+    }
     for (const string& param : cfg->parameters) {
+        allParams.push_back(param);
+    }
+
+    // Pre-register all parameters with sequential indices
+    for (const string& param : allParams) {
         method.getOrCreateVar(param);
+    }
+    // Emit istore in reverse order to match stack LIFO ordering:
+    // caller pushes args left-to-right, so last arg is on top of stack
+    for (int i = allParams.size() - 1; i >= 0; i--) {
+        int idx = method.varIndex[allParams[i]];
+        method.instructions.push_back("istore " + to_string(idx));
     }
 
     // Collect all blocks in order (BFS from entry)
@@ -305,7 +277,88 @@ void BytecodeGenerator::translateMethod(MethodCFG* cfg) {
         translateBlock(orderedBlocks[i], method, nextBlock);
     }
 
+    // Remove redundant istore/iload pairs
+    peepholeOptimize(method);
+
     methods.push_back(method);
+}
+
+void BytecodeGenerator::peepholeOptimize(MethodBytecode& method) {
+    auto& ins = method.instructions;
+
+    // Pass 1: Adjacent istore N; iload N -> remove both
+    {
+        vector<string> opt;
+        size_t i = 0;
+        while (i < ins.size()) {
+            if (i + 1 < ins.size()) {
+                const string& curr = ins[i];
+                const string& next = ins[i + 1];
+                if (curr.substr(0, 7) == "istore " && next.substr(0, 6) == "iload ") {
+                    if (curr.substr(7) == next.substr(6)) {
+                        i += 2;
+                        continue;
+                    }
+                }
+            }
+            opt.push_back(ins[i]);
+            i++;
+        }
+        ins = opt;
+    }
+
+    // Pass 2: For "iconst V; istore N" where local N is loaded exactly once
+    // and never stored again, replace the "iload N" with "iconst V" and
+    // remove the original "iconst V; istore N".
+    // Same for "iload X; istore N" -> replace "iload N" with "iload X".
+    {
+        // Count how many times each local index is stored and loaded
+        map<string, int> storeCount, loadCount;
+        for (const string& s : ins) {
+            if (s.substr(0, 7) == "istore ") storeCount[s.substr(7)]++;
+            if (s.substr(0, 6) == "iload ")  loadCount[s.substr(6)]++;
+        }
+
+        // Find candidates: "iconst V / iload X" followed by "istore N"
+        // where N is stored exactly once and loaded exactly once
+        map<string, string> replacement;  // local index -> replacement instruction
+        set<size_t> toRemove;
+
+        for (size_t i = 0; i + 1 < ins.size(); i++) {
+            const string& curr = ins[i];
+            const string& next = ins[i + 1];
+            if (next.substr(0, 7) != "istore ") continue;
+            string idx = next.substr(7);
+
+            bool isConst = (curr.substr(0, 7) == "iconst ");
+            bool isLoad  = (curr.substr(0, 6) == "iload ");
+            if (!isConst && !isLoad) continue;
+
+            // Only optimize temps stored once and loaded once
+            if (storeCount[idx] == 1 && loadCount[idx] == 1) {
+                replacement[idx] = curr;  // replace "iload N" with this
+                toRemove.insert(i);       // remove the source instruction
+                toRemove.insert(i + 1);   // remove the istore
+            }
+        }
+
+        // Apply: rebuild instructions with removals and replacements
+        vector<string> opt;
+        for (size_t i = 0; i < ins.size(); i++) {
+            if (toRemove.count(i)) continue;
+            const string& s = ins[i];
+            if (s.substr(0, 6) == "iload ") {
+                string idx = s.substr(6);
+                auto it = replacement.find(idx);
+                if (it != replacement.end()) {
+                    opt.push_back(it->second);
+                    continue;
+                }
+            }
+            opt.push_back(s);
+        }
+        ins = opt;
+    }
 }
 
 void BytecodeGenerator::generate(IRProgram& program) {

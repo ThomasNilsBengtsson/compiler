@@ -9,6 +9,7 @@ private:
     IRProgram program;
     BasicBlock* currentBlock;
     MethodCFG* currentMethod;
+    string currentClassName;
 
 public:
     IRGenerator();

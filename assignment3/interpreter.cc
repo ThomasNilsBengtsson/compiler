@@ -138,58 +138,60 @@ void Interpreter::executeInstruction(const string& instr) {
         locals[idx] = val;
     }
     else if (instr == "iadd") {
-        int b = dataStack.top(); dataStack.pop();
-        int a = dataStack.top(); dataStack.pop();
-        dataStack.push(a + b);
+        int v1 = dataStack.top(); dataStack.pop();
+        int v2 = dataStack.top(); dataStack.pop();
+        dataStack.push(v2 + v1);
     }
     else if (instr == "isub") {
-        int b = dataStack.top(); dataStack.pop();
-        int a = dataStack.top(); dataStack.pop();
-        dataStack.push(a - b);
+        int v1 = dataStack.top(); dataStack.pop();
+        int v2 = dataStack.top(); dataStack.pop();
+        dataStack.push(v2 - v1);
     }
     else if (instr == "imul") {
-        int b = dataStack.top(); dataStack.pop();
-        int a = dataStack.top(); dataStack.pop();
-        dataStack.push(a * b);
+        int v1 = dataStack.top(); dataStack.pop();
+        int v2 = dataStack.top(); dataStack.pop();
+        dataStack.push(v2 * v1);
     }
     else if (instr == "idiv") {
-        int b = dataStack.top(); dataStack.pop();
-        int a = dataStack.top(); dataStack.pop();
-        if (b == 0) {
+        int v1 = dataStack.top(); dataStack.pop();
+        int v2 = dataStack.top(); dataStack.pop();
+        if (v1 == 0) {
             cerr << "Error: Division by zero" << endl;
             stopped = true;
             return;
         }
-        dataStack.push(a / b);
+        dataStack.push(v2 / v1);
     }
     else if (instr == "ilt") {
-        int b = dataStack.top(); dataStack.pop();
-        int a = dataStack.top(); dataStack.pop();
-        dataStack.push(a < b ? 1 : 0);
+        int v1 = dataStack.top(); dataStack.pop();
+        int v2 = dataStack.top(); dataStack.pop();
+        dataStack.push(v2 < v1 ? 1 : 0);
     }
     else if (instr == "igt") {
-        int b = dataStack.top(); dataStack.pop();
-        int a = dataStack.top(); dataStack.pop();
-        dataStack.push(a > b ? 1 : 0);
+        int v1 = dataStack.top(); dataStack.pop();
+        int v2 = dataStack.top(); dataStack.pop();
+        dataStack.push(v2 > v1 ? 1 : 0);
     }
     else if (instr == "ieq") {
-        int b = dataStack.top(); dataStack.pop();
-        int a = dataStack.top(); dataStack.pop();
-        dataStack.push(a == b ? 1 : 0);
+        int v1 = dataStack.top(); dataStack.pop();
+        int v2 = dataStack.top(); dataStack.pop();
+        dataStack.push(v2 == v1 ? 1 : 0);
     }
     else if (instr == "iand") {
-        int b = dataStack.top(); dataStack.pop();
-        int a = dataStack.top(); dataStack.pop();
-        dataStack.push((a != 0 && b != 0) ? 1 : 0);
+        // Push 0 if v1 * v2 == 0, else push 1
+        int v1 = dataStack.top(); dataStack.pop();
+        int v2 = dataStack.top(); dataStack.pop();
+        dataStack.push((v1 * v2 == 0) ? 0 : 1);
     }
     else if (instr == "ior") {
-        int b = dataStack.top(); dataStack.pop();
-        int a = dataStack.top(); dataStack.pop();
-        dataStack.push((a != 0 || b != 0) ? 1 : 0);
+        // Push 0 if v1 + v2 == 0, else push 1
+        int v1 = dataStack.top(); dataStack.pop();
+        int v2 = dataStack.top(); dataStack.pop();
+        dataStack.push((v1 + v2 == 0) ? 0 : 1);
     }
     else if (instr == "inot") {
-        int a = dataStack.top(); dataStack.pop();
-        dataStack.push(a == 0 ? 1 : 0);
+        int v = dataStack.top(); dataStack.pop();
+        dataStack.push(v == 0 ? 1 : 0);
     }
     else if (instr == "print") {
         int val = dataStack.top();
@@ -212,9 +214,15 @@ void Interpreter::executeInstruction(const string& instr) {
     else if (startsWith(instr, "invokevirtual ")) {
         // Parse "invokevirtual methodName numArgs"
         string rest = instr.substr(14);  // Skip "invokevirtual "
+        string methodName;
+        // Check if numArgs is present
         size_t spacePos = rest.rfind(' ');
-        string methodName = rest.substr(0, spacePos);
-        int numArgs = stoi(rest.substr(spacePos + 1));
+        if (spacePos != string::npos) {
+            methodName = rest.substr(0, spacePos);
+            // numArgs is parsed but not used here; callee pops its own args
+        } else {
+            methodName = rest;
+        }
 
         int methodIdx = findMethodIndex(methodName);
 
@@ -224,24 +232,13 @@ void Interpreter::executeInstruction(const string& instr) {
             return;
         }
 
-        // Pop arguments from stack (in reverse order)
-        vector<int> args(numArgs);
-        for (int i = numArgs - 1; i >= 0; i--) {
-            args[i] = dataStack.top();
-            dataStack.pop();
-        }
-
-        // Create new activation record
+        // Push current activation and switch to new method
+        // The callee will pop its own arguments from the data stack via istore
         ActivationRecord ar;
         ar.methodName = methodName;
         ar.returnMethod = currentMethod;
         ar.returnAddress = pc;
-        // Initialize locals with arguments (skip first arg which is 'this')
-        for (int i = 1; i < numArgs; i++) {
-            ar.locals.push_back(args[i]);
-        }
 
-        // Push current state and switch to new method
         callStack.push(ar);
         currentMethod = methodIdx;
         pc = 0;
@@ -265,48 +262,9 @@ void Interpreter::executeInstruction(const string& instr) {
         // Push return value for caller
         dataStack.push(returnVal);
     }
-    else if (startsWith(instr, "iaload")) {
-        // Array access: array ref and index on stack
-        int index = dataStack.top(); dataStack.pop();
-        int arrayRef = dataStack.top(); dataStack.pop();
-        // For simplicity, arrayRef is the base index in locals where array starts
-        // This is a simplified implementation
-        vector<int>& locals = currentLocals();
-        dataStack.push(locals[arrayRef + index + 1]);  // +1 to skip length
-    }
-    else if (startsWith(instr, "iastore")) {
-        // Array store: array ref, index, and value on stack
-        int val = dataStack.top(); dataStack.pop();
-        int index = dataStack.top(); dataStack.pop();
-        int arrayRef = dataStack.top(); dataStack.pop();
-        vector<int>& locals = currentLocals();
-        while (locals.size() <= (size_t)(arrayRef + index + 1)) {
-            locals.push_back(0);
-        }
-        locals[arrayRef + index + 1] = val;  // +1 to skip length
-    }
-    else if (instr == "arraylength") {
-        int arrayRef = dataStack.top(); dataStack.pop();
-        vector<int>& locals = currentLocals();
-        dataStack.push(locals[arrayRef]);  // Length stored at base
-    }
-    else if (instr == "newarray") {
-        int size = dataStack.top(); dataStack.pop();
-        vector<int>& locals = currentLocals();
-        int arrayRef = locals.size();
-        locals.push_back(size);  // Store length first
-        for (int i = 0; i < size; i++) {
-            locals.push_back(0);  // Initialize elements to 0
-        }
-        dataStack.push(arrayRef);
-    }
     else if (startsWith(instr, "new ")) {
-        // Object creation - simplified: just push a reference (index)
-        string className = parseStringArg(instr);
-        vector<int>& locals = currentLocals();
-        int objRef = locals.size();
-        locals.push_back(0);  // Placeholder for object
-        dataStack.push(objRef);
+        // Object creation - push a dummy reference (0) since objects are simplified
+        dataStack.push(0);
     }
     else if (instr == "stop") {
         stopped = true;

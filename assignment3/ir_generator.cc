@@ -1,7 +1,7 @@
 #include "ir_generator.h"
 
 IRGenerator::IRGenerator()
-    : currentBlock(nullptr), currentMethod(nullptr) {
+    : currentBlock(nullptr), currentMethod(nullptr), currentClassName("") {
 }
 
 void IRGenerator::generate(Node* root) {
@@ -160,6 +160,16 @@ string IRGenerator::translateExpression(Node* expr) {
         Node* methodId = *it++;
         Node* argsNode = *it;  // ExpressionParamsOpt
 
+        // Determine the class name for the qualified method name
+        string callClassName = "";
+        if (objExpr->type == "NewObjectExpression") {
+            callClassName = objExpr->children.front()->value;
+        } else if (objExpr->type == "This") {
+            callClassName = currentClassName;
+        } else if (objExpr->type == "Identifier") {
+            callClassName = currentClassName;
+        }
+
         // Translate the object expression
         string objTemp = translateExpression(objExpr);
 
@@ -167,10 +177,8 @@ string IRGenerator::translateExpression(Node* expr) {
         currentBlock->addInstruction(TAC(TACOp::PARAM, objTemp));
 
         // Translate and emit PARAM for each argument
-        // Structure: ExpressionParamsOpt -> ExpressionParams -> expressions
         int argCount = 1;  // Start at 1 because "this" is first param
         if (argsNode && !argsNode->children.empty()) {
-            // argsNode has one child: ExpressionParams
             Node* exprParams = argsNode->children.front();
             if (exprParams && exprParams->type == "ExpressionParams") {
                 for (Node* arg : exprParams->children) {
@@ -181,10 +189,11 @@ string IRGenerator::translateExpression(Node* expr) {
             }
         }
 
-        // Emit CALL
+        // Emit CALL with qualified method name and arg count
         string temp = program.newTemp();
         string methodName = methodId->value;
-        currentBlock->addInstruction(TAC(TACOp::CALL, temp, methodName, "", argCount));
+        string qualifiedName = callClassName.empty() ? methodName : callClassName + "." + methodName;
+        currentBlock->addInstruction(TAC(TACOp::CALL, temp, qualifiedName, "", argCount));
 
         return temp;
     }
@@ -419,6 +428,7 @@ void IRGenerator::translateClass(Node* classDecl) {
     // children[2] = MethodDeclarationCL
 
     string className = classDecl->value;
+    currentClassName = className;
 
     auto it = classDecl->children.begin();
     Node* classId = *it++;
@@ -444,6 +454,7 @@ void IRGenerator::translateMainClass(Node* mainClass) {
     //   children[2] = StatementList (remaining statements)
 
     string className = mainClass->value;
+    currentClassName = className;
 
     auto it = mainClass->children.begin();
     Node* classId = *it++;

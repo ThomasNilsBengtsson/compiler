@@ -30,6 +30,9 @@ private:
     // Translate a method CFG
     void translateMethod(MethodCFG* cfg);
 
+    // Peephole optimization: remove redundant istore/iload pairs
+    void peepholeOptimize(MethodBytecode& method);
+
 public:
     void generate(IRProgram& program);
     void writeToFile(const string& filename);
