@@ -1,0 +1,50 @@
+Sum.main:
+block_0:
+    new Test
+    istore 0
+    iload 0
+    iconst 100
+    istore 1
+    iload 1
+    invokevirtual sum 2
+    istore 2
+    iload 2
+    print
+    stop
+
+Test.sum:
+block_1:
+    iconst 0
+    istore 1
+    iload 1
+    istore 2
+    goto block_2
+block_2:
+    iconst 0
+    istore 3
+    iload 3
+    iload 2
+    ilt
+    istore 4
+    iload 4
+    iffalse goto block_4
+block_3:
+    iload 2
+    iload 0
+    iadd
+    istore 5
+    iload 5
+    istore 2
+    iconst 1
+    istore 6
+    iload 0
+    iload 6
+    isub
+    istore 7
+    iload 7
+    istore 0
+    goto block_2
+block_4:
+    iload 2
+    ireturn
+

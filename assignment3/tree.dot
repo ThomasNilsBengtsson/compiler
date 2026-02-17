@@ -1,0 +1,103 @@
+digraph {
+n0 [label="Goal:"];
+n1 [label="MainClass:Sum"];
+n2 [label="Identifier:Sum"];
+n1 -> n2
+n3 [label="MainClass:a"];
+n4 [label="Identifier:a"];
+n3 -> n4
+n5 [label="PrintStatement:"];
+n6 [label="MethodCall:"];
+n7 [label="NewObjectExpression:"];
+n8 [label="Identifier:Test"];
+n7 -> n8
+n6 -> n7
+n9 [label="Identifier:sum"];
+n6 -> n9
+n10 [label="ExpressionParamsOpt:"];
+n11 [label="ExpressionParams:"];
+n12 [label="IntLiteral:100"];
+n11 -> n12
+n10 -> n11
+n6 -> n10
+n5 -> n6
+n3 -> n5
+n13 [label="StatementList:"];
+n3 -> n13
+n1 -> n3
+n0 -> n1
+n14 [label="ClassDeclarationList:"];
+n15 [label="ClassDeclaration:Test"];
+n16 [label="Identifier:Test"];
+n15 -> n16
+n17 [label="VarDeclarationCL:"];
+n15 -> n17
+n18 [label="MethodDeclarationCL:"];
+n19 [label="MethodDeclaration:sum"];
+n20 [label="Int:"];
+n19 -> n20
+n21 [label="Identifier:sum"];
+n19 -> n21
+n22 [label="MethodDeclarationParamsOpt:"];
+n23 [label="ParameterList:"];
+n24 [label="Parameter:"];
+n25 [label="Int:"];
+n24 -> n25
+n26 [label="Identifier:num"];
+n24 -> n26
+n23 -> n24
+n22 -> n23
+n19 -> n22
+n27 [label="MethodDeclarationBody:"];
+n28 [label="VarDeclaration:sum"];
+n29 [label="Int:"];
+n28 -> n29
+n30 [label="Identifier:sum"];
+n28 -> n30
+n27 -> n28
+n31 [label="AssignStatement:"];
+n32 [label="Identifier:sum"];
+n31 -> n32
+n33 [label="IntLiteral:0"];
+n31 -> n33
+n27 -> n31
+n34 [label="WhileStatement:"];
+n35 [label="LtExpression:"];
+n36 [label="IntLiteral:0"];
+n35 -> n36
+n37 [label="Identifier:sum"];
+n35 -> n37
+n34 -> n35
+n38 [label="Block:"];
+n39 [label="StatementMulti:"];
+n40 [label="AssignStatement:"];
+n41 [label="Identifier:sum"];
+n40 -> n41
+n42 [label="AddExpression:"];
+n43 [label="Identifier:sum"];
+n42 -> n43
+n44 [label="Identifier:num"];
+n42 -> n44
+n40 -> n42
+n39 -> n40
+n45 [label="AssignStatement:"];
+n46 [label="Identifier:num"];
+n45 -> n46
+n47 [label="SubExpression:"];
+n48 [label="Identifier:num"];
+n47 -> n48
+n49 [label="IntLiteral:1"];
+n47 -> n49
+n45 -> n47
+n39 -> n45
+n38 -> n39
+n34 -> n38
+n27 -> n34
+n19 -> n27
+n50 [label="Identifier:sum"];
+n19 -> n50
+n18 -> n19
+n15 -> n18
+n14 -> n15
+n0 -> n14
+}

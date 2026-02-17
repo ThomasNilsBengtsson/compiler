@@ -1,0 +1,24 @@
+digraph CFG {
+    node [fontname="Courier"];
+    edge [fontname="Courier"];
+
+    subgraph cluster_Sum_main {
+        label="Sum.main";
+        style=rounded;
+        "block_0" [shape=box, label="block_0\n_t0 = new Test\nparam _t0\n_t1 = 100\nparam _t1\n_t2 = call sum 2\nprint _t2\nstop\n"];
+    }
+
+    subgraph cluster_Test_sum {
+        label="Test.sum";
+        style=rounded;
+        "block_1" [shape=box, label="block_1\n_t3 = 0\nsum = _t3\ngoto block_2\n"];
+    "block_1" -> "block_2";
+        "block_2" [shape=box, label="block_2\n_t4 = 0\n_t5 = _t4 LT sum\niffalse _t5 goto block_4\n"];
+    "block_2" -> "block_3" [label="true"];
+    "block_2" -> "block_4" [label="false"];
+        "block_3" [shape=box, label="block_3\n_t6 = sum ADD num\nsum = _t6\n_t7 = 1\n_t8 = num SUB _t7\nnum = _t8\ngoto block_2\n"];
+    "block_3" -> "block_2";
+        "block_4" [shape=box, label="block_4\nreturn sum\n"];
+    }
+
+}
