@@ -62,17 +62,6 @@ void BytecodeGenerator::translateTAC(const TAC& tac, MethodBytecode& method) {
             break;
         }
 
-        case TACOp::DIV: {
-            int idx1 = method.getOrCreateVar(tac.arg1);
-            int idx2 = method.getOrCreateVar(tac.arg2);
-            method.instructions.push_back("iload " + to_string(idx1));
-            method.instructions.push_back("iload " + to_string(idx2));
-            method.instructions.push_back("idiv");
-            int dstIdx = method.getOrCreateVar(tac.result);
-            method.instructions.push_back("istore " + to_string(dstIdx));
-            break;
-        }
-
         case TACOp::LT: {
             int idx1 = method.getOrCreateVar(tac.arg1);
             int idx2 = method.getOrCreateVar(tac.arg2);
@@ -185,14 +174,6 @@ void BytecodeGenerator::translateTAC(const TAC& tac, MethodBytecode& method) {
             method.instructions.push_back("new " + tac.arg1);
             int dstIdx = method.getOrCreateVar(tac.result);
             method.instructions.push_back("istore " + to_string(dstIdx));
-            break;
-        }
-
-        case TACOp::ARRAY_ACCESS:
-        case TACOp::ARRAY_ASSIGN:
-        case TACOp::ARRAY_LENGTH:
-        case TACOp::NEW_ARRAY: {
-            // Arrays disregarded for bytecode generation (Part 2 assumption)
             break;
         }
 

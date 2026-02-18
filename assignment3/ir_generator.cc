@@ -1,78 +1,193 @@
-#include "ir_generator.h"
-
-IRGenerator::IRGenerator()
-    : currentBlock(nullptr), currentMethod(nullptr), currentClassName("") {
-}
+#include "ir_generator.hh"
 
 void IRGenerator::generate(Node* root) {
-    // Root should be "Goal" node with children:
-    // [0] MainClass
-    // [1] ClassDeclarationList (optional)
+    if (!root) return;
+    this->root = root;
+    visitNode(root);
+}
 
-    if (!root || root->children.empty()) {
+void IRGenerator::visitNode(Node* node) {
+    if (!node) return;
+
+    if (node->type == "MainClass") {
+        visitMainClass(node);
         return;
     }
 
-    auto it = root->children.begin();
+    if (node->type == "ClassDeclaration") {
+        visitClass(node);
+        return;
+    }
 
-    // First child is MainClass
-    Node* mainClass = *it;
-    translateMainClass(mainClass);
-    ++it;
-
-    // Second child (if exists) is ClassDeclarationList
-    if (it != root->children.end()) {
-        Node* classListNode = *it;
-        // Iterate through all class declarations
-        for (Node* classDecl : classListNode->children) {
-            translateClass(classDecl);
+    if (!node->children.empty()) {
+        for (auto child : node->children) {
+            parents.push_back(node);
+            visitNode(child);
+            parents.pop_back();
         }
     }
 }
 
-string IRGenerator::translateExpression(Node* expr) {
-    if (!expr) return "";
+void IRGenerator::visitMainClass(Node* node) {
+    // node->value = class name
+    // children[0] = class Identifier
+    // children[1] = MainClassParams (type "MainClass"):
+    //   children[0] = args Identifier
+    //   children[1] = first Statement
+    //   children[2] = StatementList (remaining statements)
 
-    const string& type = expr->type;
+    string className = node->value;
+    currentClassName = className;
 
-    // IntLiteral: temp = constant
+    MethodCFG* method = new MethodCFG(className + ".main");
+    currentMethod = method;
+
+    BasicBlock* entryBlock = program.newBlock();
+    method->entryBlock = entryBlock;
+    method->allBlocks.push_back(entryBlock);
+    currentBlock = entryBlock;
+
+    auto it = node->children.begin();
+    ++it;  // skip class Identifier
+    Node* mainParams = *it;
+
+    auto paramIt = mainParams->children.begin();
+    ++paramIt;  // skip args Identifier
+    Node* firstStmt = *paramIt++;
+    Node* stmtList = *paramIt;
+
+    BasicBlock* exitBlock = visitStatement(firstStmt, entryBlock);
+
+    for (Node* stmt : stmtList->children) {
+        exitBlock = visitStatement(stmt, exitBlock);
+    }
+
+    currentBlock = exitBlock;
+    currentBlock->addInstruction(TAC(TACOp::STOP, ""));
+
+    program.methods.push_back(method);
+}
+
+void IRGenerator::visitClass(Node* node) {
+    // node->value = class name
+    // children[0] = class Identifier
+    // children[1] = VarDeclarationCL (class-level variables)
+    // children[2] = MethodDeclarationCL (methods)
+
+    string className = node->value;
+    currentClassName = className;
+
+    auto it = node->children.begin();
+    ++it;  // skip class Identifier
+    ++it;  // skip VarDeclarationCL
+    Node* methodDeclList = *it;
+
+    for (Node* methodDecl : methodDeclList->children) {
+        visitMethod(methodDecl);
+    }
+}
+
+void IRGenerator::visitMethod(Node* node) {
+    // node->value = method name
+    // children[0] = return type
+    // children[1] = method Identifier
+    // children[2] = MethodDeclarationParamsOpt
+    // children[3] = MethodDeclarationBody
+    // children[4] = return expression
+
+    auto it = node->children.begin();
+    Node* returnType = *it++;
+    Node* methodId = *it++;
+    Node* paramsOpt = *it++;
+    Node* body = *it++;
+    Node* returnExpr = *it;
+
+    string methodName = methodId->value;
+
+    MethodCFG* method = new MethodCFG(currentClassName + "." + methodName);
+    currentMethod = method;
+
+    BasicBlock* entryBlock = program.newBlock();
+    method->entryBlock = entryBlock;
+    method->allBlocks.push_back(entryBlock);
+    currentBlock = entryBlock;
+
+    // Extract parameters from MethodDeclarationParamsOpt -> ParameterList -> Parameter nodes
+    // Parameter children: [0] = type, [1] = Identifier
+    if (paramsOpt && !paramsOpt->children.empty()) {
+        Node* paramList = paramsOpt->children.front();
+        if (paramList && paramList->type == "ParameterList") {
+            for (Node* param : paramList->children) {
+                if (param->type == "Parameter") {
+                    auto paramIt = param->children.begin();
+                    ++paramIt;  // skip type
+                    Node* paramId = *paramIt;
+                    method->parameters.push_back(paramId->value);
+                }
+            }
+        }
+    }
+
+    // Process MethodDeclarationBody children:
+    // VarDeclaration nodes -> localVars, Statement nodes -> visitStatement
+    BasicBlock* exitBlock = entryBlock;
+    if (body && !body->children.empty()) {
+        for (Node* child : body->children) {
+            if (child->type == "VarDeclaration") {
+                auto varIt = child->children.begin();
+                ++varIt;  // skip type
+                Node* varId = *varIt;
+                method->localVars.push_back(varId->value);
+            } else {
+                exitBlock = visitStatement(child, exitBlock);
+            }
+        }
+    }
+
+    currentBlock = exitBlock;
+    string returnTemp = visitExpression(returnExpr);
+    currentBlock->addInstruction(TAC(TACOp::RETURN, returnTemp));
+
+    program.methods.push_back(method);
+}
+
+string IRGenerator::visitExpression(Node* node) {
+    if (!node) return "";
+
+    const string& type = node->type;
+
     if (type == "IntLiteral") {
         string temp = program.newTemp();
-        currentBlock->addInstruction(TAC(TACOp::COPY_CONST, temp, expr->value));
+        currentBlock->addInstruction(TAC(TACOp::COPY_CONST, temp, node->value));
         return temp;
     }
 
-    // BooleanLiteral: temp = 1 or 0
     if (type == "BooleanLiteral") {
         string temp = program.newTemp();
-        string val = (expr->value == "true") ? "1" : "0";
+        string val = (node->value == "true") ? "1" : "0";
         currentBlock->addInstruction(TAC(TACOp::COPY_CONST, temp, val));
         return temp;
     }
 
-    // Identifier: just return the variable name
     if (type == "Identifier") {
-        return expr->value;
+        return node->value;
     }
 
-    // This: return "this"
     if (type == "This") {
         return "this";
     }
 
-    // Parenthesized expression: translate inner
     if (type == "Expression") {
-        return translateExpression(expr->children.front());
+        return visitExpression(node->children.front());
     }
 
-    // Binary arithmetic: AddExpression, SubExpression, MultExpression
     if (type == "AddExpression" || type == "SubExpression" || type == "MultExpression") {
-        auto it = expr->children.begin();
+        auto it = node->children.begin();
         Node* left = *it++;
         Node* right = *it;
 
-        string t1 = translateExpression(left);
-        string t2 = translateExpression(right);
+        string t1 = visitExpression(left);
+        string t2 = visitExpression(right);
         string temp = program.newTemp();
 
         TACOp op;
@@ -84,15 +199,14 @@ string IRGenerator::translateExpression(Node* expr) {
         return temp;
     }
 
-    // Binary comparison/logical: AndExpression, OrExpression, LtExpression, GtExpression, EqExpression
     if (type == "AndExpression" || type == "OrExpression" ||
         type == "LtExpression" || type == "GtExpression" || type == "EqExpression") {
-        auto it = expr->children.begin();
+        auto it = node->children.begin();
         Node* left = *it++;
         Node* right = *it;
 
-        string t1 = translateExpression(left);
-        string t2 = translateExpression(right);
+        string t1 = visitExpression(left);
+        string t2 = visitExpression(right);
         string temp = program.newTemp();
 
         TACOp op;
@@ -106,61 +220,27 @@ string IRGenerator::translateExpression(Node* expr) {
         return temp;
     }
 
-    // NotExpression: temp = !operand
     if (type == "NotExpression") {
-        string t1 = translateExpression(expr->children.front());
+        string t1 = visitExpression(node->children.front());
         string temp = program.newTemp();
         currentBlock->addInstruction(TAC(TACOp::NOT, temp, t1));
         return temp;
     }
 
-    // ArrayAccess: temp = array[index]
-    if (type == "ArrayAccess") {
-        auto it = expr->children.begin();
-        Node* arrayNode = *it++;
-        Node* indexNode = *it;
-
-        string arrTemp = translateExpression(arrayNode);
-        string idxTemp = translateExpression(indexNode);
-        string temp = program.newTemp();
-
-        currentBlock->addInstruction(TAC(TACOp::ARRAY_ACCESS, temp, arrTemp, idxTemp));
-        return temp;
-    }
-
-    // ArrayLength: temp = length array
-    if (type == "ArrayLength") {
-        string arrTemp = translateExpression(expr->children.front());
-        string temp = program.newTemp();
-        currentBlock->addInstruction(TAC(TACOp::ARRAY_LENGTH, temp, arrTemp));
-        return temp;
-    }
-
-    // NewArrayExpression: temp = new int[size]
-    if (type == "NewArrayExpression") {
-        string sizeTemp = translateExpression(expr->children.front());
-        string temp = program.newTemp();
-        currentBlock->addInstruction(TAC(TACOp::NEW_ARRAY, temp, sizeTemp));
-        return temp;
-    }
-
-    // NewObjectExpression: temp = new ClassName
     if (type == "NewObjectExpression") {
-        Node* classId = expr->children.front();
-        string className = classId->value;
+        Node* classId = node->children.front();
         string temp = program.newTemp();
-        currentBlock->addInstruction(TAC(TACOp::NEW_OBJECT, temp, className));
+        currentBlock->addInstruction(TAC(TACOp::NEW_OBJECT, temp, classId->value));
         return temp;
     }
 
-    // MethodCall: obj.method(args)
     if (type == "MethodCall") {
-        auto it = expr->children.begin();
+        auto it = node->children.begin();
         Node* objExpr = *it++;
         Node* methodId = *it++;
         Node* argsNode = *it;  // ExpressionParamsOpt
 
-        // Determine the class name for the qualified method name
+        // Determine the qualified class name for the method call
         string callClassName = "";
         if (objExpr->type == "NewObjectExpression") {
             callClassName = objExpr->children.front()->value;
@@ -170,138 +250,107 @@ string IRGenerator::translateExpression(Node* expr) {
             callClassName = currentClassName;
         }
 
-        // Translate the object expression
-        string objTemp = translateExpression(objExpr);
-
-        // Emit PARAM for "this" (the object)
+        // Translate the object expression and emit as first param ("this")
+        string objTemp = visitExpression(objExpr);
         currentBlock->addInstruction(TAC(TACOp::PARAM, objTemp));
 
-        // Translate and emit PARAM for each argument
-        int argCount = 1;  // Start at 1 because "this" is first param
+        // Translate and emit each argument
+        int argCount = 1;
         if (argsNode && !argsNode->children.empty()) {
             Node* exprParams = argsNode->children.front();
             if (exprParams && exprParams->type == "ExpressionParams") {
                 for (Node* arg : exprParams->children) {
-                    string argTemp = translateExpression(arg);
+                    string argTemp = visitExpression(arg);
                     currentBlock->addInstruction(TAC(TACOp::PARAM, argTemp));
                     argCount++;
                 }
             }
         }
 
-        // Emit CALL with qualified method name and arg count
         string temp = program.newTemp();
         string methodName = methodId->value;
         string qualifiedName = callClassName.empty() ? methodName : callClassName + "." + methodName;
         currentBlock->addInstruction(TAC(TACOp::CALL, temp, qualifiedName, "", argCount));
-
         return temp;
     }
 
-    // Fallback: unknown expression type
     return "";
 }
 
-BasicBlock* IRGenerator::translateStatement(Node* stmt, BasicBlock* block) {
-    if (!stmt || !block) return block;
+BasicBlock* IRGenerator::visitStatement(Node* node, BasicBlock* block) {
+    if (!node || !block) return block;
 
     currentBlock = block;
-    const string& type = stmt->type;
+    const string& type = node->type;
 
-    // AssignStatement: var = expr
     if (type == "AssignStatement") {
-        auto it = stmt->children.begin();
+        auto it = node->children.begin();
         Node* varId = *it++;
         Node* expr = *it;
 
-        string result = translateExpression(expr);
+        string result = visitExpression(expr);
         currentBlock->addInstruction(TAC(TACOp::COPY, varId->value, result));
         return currentBlock;
     }
 
-    // ArrayAssignStatement: array[index] = value
-    if (type == "ArrayAssignStatement") {
-        auto it = stmt->children.begin();
-        Node* arrayId = *it++;
-        Node* indexExpr = *it++;
-        Node* valueExpr = *it;
-
-        string indexTemp = translateExpression(indexExpr);
-        string valueTemp = translateExpression(valueExpr);
-        currentBlock->addInstruction(TAC(TACOp::ARRAY_ASSIGN, arrayId->value, indexTemp, valueTemp));
-        return currentBlock;
-    }
-
-    // PrintStatement: print(expr)
     if (type == "PrintStatement") {
-        Node* expr = stmt->children.front();
-        string result = translateExpression(expr);
+        Node* expr = node->children.front();
+        string result = visitExpression(expr);
         currentBlock->addInstruction(TAC(TACOp::PRINT, result));
         return currentBlock;
     }
 
-    // Block: { statements }
     if (type == "Block") {
-        // children[0] is StatementMulti containing the statements
-        if (!stmt->children.empty()) {
-            Node* stmtMulti = stmt->children.front();
+        if (!node->children.empty()) {
+            Node* stmtMulti = node->children.front();
             BasicBlock* exitBlock = block;
             for (Node* s : stmtMulti->children) {
-                exitBlock = translateStatement(s, exitBlock);
+                exitBlock = visitStatement(s, exitBlock);
             }
             return exitBlock;
         }
         return block;
     }
 
-    // IfStatement: if (cond) stmt [else stmt]
     if (type == "IfStatement") {
-        auto it = stmt->children.begin();
+        auto it = node->children.begin();
         Node* condExpr = *it++;
         Node* thenStmt = *it++;
 
-        // Translate condition in current block
-        string condTemp = translateExpression(condExpr);
+        string condTemp = visitExpression(condExpr);
 
-        // Create blocks
         BasicBlock* thenBlock = program.newBlock();
         currentMethod->allBlocks.push_back(thenBlock);
         BasicBlock* mergeBlock = program.newBlock();
         currentMethod->allBlocks.push_back(mergeBlock);
 
-        bool hasElse = (stmt->children.size() == 3);
+        bool hasElse = (node->children.size() == 3);
 
         if (hasElse) {
             Node* elseStmt = *it;
 
-            // Create else block
             BasicBlock* elseBlock = program.newBlock();
             currentMethod->allBlocks.push_back(elseBlock);
 
-            // Current block: iffalse cond goto elseBlock
             currentBlock->addInstruction(TAC(TACOp::COND_JUMP, elseBlock->label, condTemp));
             currentBlock->condition = condTemp;
             currentBlock->trueExit = thenBlock;
             currentBlock->falseExit = elseBlock;
 
-            // Translate then branch
-            BasicBlock* thenExit = translateStatement(thenStmt, thenBlock);
+            BasicBlock* thenExit = visitStatement(thenStmt, thenBlock);
             thenExit->addInstruction(TAC(TACOp::JUMP, mergeBlock->label));
             thenExit->trueExit = mergeBlock;
 
-            // Translate else branch
-            BasicBlock* elseExit = translateStatement(elseStmt, elseBlock);
+            BasicBlock* elseExit = visitStatement(elseStmt, elseBlock);
             elseExit->addInstruction(TAC(TACOp::JUMP, mergeBlock->label));
             elseExit->trueExit = mergeBlock;
         } else {
-            // No else: iffalse cond goto mergeBlock
             currentBlock->addInstruction(TAC(TACOp::COND_JUMP, mergeBlock->label, condTemp));
             currentBlock->condition = condTemp;
             currentBlock->trueExit = thenBlock;
             currentBlock->falseExit = mergeBlock;
 
-            // Translate then branch
-            BasicBlock* thenExit = translateStatement(thenStmt, thenBlock);
+            BasicBlock* thenExit = visitStatement(thenStmt, thenBlock);
             thenExit->addInstruction(TAC(TACOp::JUMP, mergeBlock->label));
             thenExit->trueExit = mergeBlock;
         }
@@ -309,13 +358,11 @@ BasicBlock* IRGenerator::translateStatement(Node* stmt, BasicBlock* block) {
         return mergeBlock;
     }
 
-    // WhileStatement: while (cond) stmt
     if (type == "WhileStatement") {
-        auto it = stmt->children.begin();
+        auto it = node->children.begin();
         Node* condExpr = *it++;
         Node* bodyStmt = *it;
 
-        // Create blocks: condition, body, exit
         BasicBlock* condBlock = program.newBlock();
         currentMethod->allBlocks.push_back(condBlock);
         BasicBlock* bodyBlock = program.newBlock();
@@ -323,175 +370,24 @@ BasicBlock* IRGenerator::translateStatement(Node* stmt, BasicBlock* block) {
         BasicBlock* exitBlock = program.newBlock();
         currentMethod->allBlocks.push_back(exitBlock);
 
-        // Current block jumps to condition block
         currentBlock->addInstruction(TAC(TACOp::JUMP, condBlock->label));
         currentBlock->trueExit = condBlock;
 
-        // Condition block: evaluate condition, branch
         currentBlock = condBlock;
-        string condTemp = translateExpression(condExpr);
+        string condTemp = visitExpression(condExpr);
         condBlock->addInstruction(TAC(TACOp::COND_JUMP, exitBlock->label, condTemp));
         condBlock->condition = condTemp;
         condBlock->trueExit = bodyBlock;
         condBlock->falseExit = exitBlock;
 
-        // Body block: execute body, jump back to condition
-        BasicBlock* bodyExit = translateStatement(bodyStmt, bodyBlock);
+        BasicBlock* bodyExit = visitStatement(bodyStmt, bodyBlock);
         bodyExit->addInstruction(TAC(TACOp::JUMP, condBlock->label));
         bodyExit->trueExit = condBlock;
 
         return exitBlock;
     }
 
-    // Fallback: unknown statement type
     return block;
-}
-
-void IRGenerator::translateMethod(Node* methodDecl, const string& className) {
-    // methodDecl->value = method name
-    // children[0] = return type
-    // children[1] = method Identifier
-    // children[2] = MethodDeclarationParamsOpt
-    // children[3] = MethodDeclarationBody
-    // children[4] = return expression
-
-    auto it = methodDecl->children.begin();
-    Node* returnType = *it++;
-    Node* methodId = *it++;
-    Node* paramsOpt = *it++;
-    Node* body = *it++;
-    Node* returnExpr = *it;
-
-    string methodName = methodId->value;
-
-    // Create method CFG
-    MethodCFG* method = new MethodCFG(className + "." + methodName);
-    currentMethod = method;
-
-    // Create entry block
-    BasicBlock* entryBlock = program.newBlock();
-    method->entryBlock = entryBlock;
-    method->allBlocks.push_back(entryBlock);
-    currentBlock = entryBlock;
-
-    // Extract parameters from MethodDeclarationParamsOpt
-    // Structure: MethodDeclarationParamsOpt -> ParameterList -> Parameter nodes
-    // Parameter: children[0]=type, children[1]=identifier
-    if (paramsOpt && !paramsOpt->children.empty()) {
-        // paramsOpt has one child: ParameterList
-        Node* paramList = paramsOpt->children.front();
-        if (paramList && paramList->type == "ParameterList") {
-            // ParameterList contains all Parameter nodes as children
-            for (Node* param : paramList->children) {
-                if (param->type == "Parameter") {
-                    auto paramIt = param->children.begin();
-                    ++paramIt;  // skip type
-                    Node* paramId = *paramIt;
-                    method->parameters.push_back(paramId->value);
-                }
-            }
-        }
-    }
-
-    // Process MethodDeclarationBody children:
-    // - VarDeclaration nodes: add to localVars
-    // - Statement nodes: translate
-    BasicBlock* exitBlock = entryBlock;
-    if (body && !body->children.empty()) {
-        for (Node* child : body->children) {
-            if (child->type == "VarDeclaration") {
-                // VarDeclaration: children[0]=type, children[1]=identifier
-                auto varIt = child->children.begin();
-                ++varIt;  // skip type
-                Node* varId = *varIt;
-                method->localVars.push_back(varId->value);
-            } else {
-                // It's a statement
-                exitBlock = translateStatement(child, exitBlock);
-            }
-        }
-    }
-
-    // Translate return expression
-    currentBlock = exitBlock;
-    string returnTemp = translateExpression(returnExpr);
-    currentBlock->addInstruction(TAC(TACOp::RETURN, returnTemp));
-
-    // Add method to program
-    program.methods.push_back(method);
-}
-
-void IRGenerator::translateClass(Node* classDecl) {
-    // classDecl->value = class name
-    // children[0] = class Identifier
-    // children[1] = VarDeclarationCL (class variables - skip for now)
-    // children[2] = MethodDeclarationCL
-
-    string className = classDecl->value;
-    currentClassName = className;
-
-    auto it = classDecl->children.begin();
-    Node* classId = *it++;
-    Node* varDeclList = *it++;
-    Node* methodDeclList = *it;
-
-    // Iterate MethodDeclarationCL children
-    // For each MethodDeclaration: translateMethod(method, className)
-    if (methodDeclList && !methodDeclList->children.empty()) {
-        for (Node* methodDecl : methodDeclList->children) {
-            translateMethod(methodDecl, className);
-        }
-    }
-}
-
-void IRGenerator::translateMainClass(Node* mainClass) {
-    // mainClass->value = class name
-    // children[0] = class Identifier
-    // children[1] = MainClassParams
-    // MainClassParams structure:
-    //   children[0] = args Identifier
-    //   children[1] = first Statement
-    //   children[2] = StatementList (remaining statements)
-
-    string className = mainClass->value;
-    currentClassName = className;
-
-    auto it = mainClass->children.begin();
-    Node* classId = *it++;
-    Node* mainParams = *it;
-
-    // Create method CFG with name "ClassName.main"
-    MethodCFG* method = new MethodCFG(className + ".main");
-    currentMethod = method;
-
-    // Create entry block
-    BasicBlock* entryBlock = program.newBlock();
-    method->entryBlock = entryBlock;
-    method->allBlocks.push_back(entryBlock);
-    currentBlock = entryBlock;
-
-    // Process MainClassParams
-    auto paramIt = mainParams->children.begin();
-    Node* argsId = *paramIt++;       // args Identifier (skip)
-    Node* firstStmt = *paramIt++;    // first Statement
-    Node* stmtList = *paramIt;       // StatementList (remaining statements)
-
-    // Translate first statement
-    BasicBlock* exitBlock = translateStatement(firstStmt, entryBlock);
-
-    // Iterate StatementList and translate each
-    if (stmtList && !stmtList->children.empty()) {
-        for (Node* stmt : stmtList->children) {
-            exitBlock = translateStatement(stmt, exitBlock);
-        }
-    }
-
-    // Add STOP instruction at the end
-    currentBlock = exitBlock;
-    currentBlock->addInstruction(TAC(TACOp::STOP, ""));
-
-    // Add method to program.methods
-    program.methods.push_back(method);
 }
 
 void IRGenerator::writeDotFile(const string& filename) {

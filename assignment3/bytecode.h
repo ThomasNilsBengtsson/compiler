@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include "ir.h"
+#include "ir.hh"
 
 using namespace std;
 

@@ -1,14 +1,13 @@
-#include "ir.h"
+#include "ir.hh"
 #include <fstream>
 #include <sstream>
 
-// Convert TACOp to string for output
+// Convert binary TACOp to string for output
 static string opToString(TACOp op) {
     switch (op) {
         case TACOp::ADD: return "ADD";
         case TACOp::SUB: return "SUB";
         case TACOp::MUL: return "MUL";
-        case TACOp::DIV: return "DIV";
         case TACOp::LT:  return "LT";
         case TACOp::GT:  return "GT";
         case TACOp::EQ:  return "EQ";
@@ -33,7 +32,6 @@ string TAC::toString() const {
         case TACOp::ADD:
         case TACOp::SUB:
         case TACOp::MUL:
-        case TACOp::DIV:
         case TACOp::LT:
         case TACOp::GT:
         case TACOp::EQ:
@@ -70,22 +68,6 @@ string TAC::toString() const {
             ss << "print " << result;
             break;
 
-        case TACOp::ARRAY_ACCESS:
-            ss << result << " = " << arg1 << "[" << arg2 << "]";
-            break;
-
-        case TACOp::ARRAY_ASSIGN:
-            ss << result << "[" << arg1 << "] = " << arg2;
-            break;
-
-        case TACOp::ARRAY_LENGTH:
-            ss << result << " = length " << arg1;
-            break;
-
-        case TACOp::NEW_ARRAY:
-            ss << result << " = new int[" << arg1 << "]";
-            break;
-
         case TACOp::NEW_OBJECT:
             ss << result << " = new " << arg1;
             break;
@@ -106,10 +88,8 @@ void BasicBlock::addInstruction(const TAC& tac) {
 string BasicBlock::toDot() const {
     stringstream ss;
 
-    // Node definition with label containing instructions
     ss << "    \"" << label << "\" [shape=box, label=\"" << label << "\\n";
     for (const auto& instr : instructions) {
-        // Escape special characters for dot format
         string s = instr.toString();
         for (size_t i = 0; i < s.length(); i++) {
             if (s[i] == '"') ss << "\\\"";
@@ -121,13 +101,10 @@ string BasicBlock::toDot() const {
     }
     ss << "\"];\n";
 
-    // Edges
     if (trueExit && falseExit) {
-        // Conditional branch
         ss << "    \"" << label << "\" -> \"" << trueExit->label << "\" [label=\"true\"];\n";
         ss << "    \"" << label << "\" -> \"" << falseExit->label << "\" [label=\"false\"];\n";
     } else if (trueExit) {
-        // Unconditional jump
         ss << "    \"" << label << "\" -> \"" << trueExit->label << "\";\n";
     }
 
@@ -165,8 +142,6 @@ void IRProgram::toDotFile(const string& filename) const {
     out << "    edge [fontname=\"Courier\"];\n\n";
 
     for (const auto* method : methods) {
-        // Create a subgraph for each method
-        // Replace '.' with '_' for valid DOT identifier
         string clusterId = method->name;
         for (char& c : clusterId) {
             if (c == '.') c = '_';
@@ -176,7 +151,6 @@ void IRProgram::toDotFile(const string& filename) const {
         out << "        style=rounded;\n";
 
         for (const auto* block : method->allBlocks) {
-            // Indent the block's dot output
             string blockDot = block->toDot();
             out << "    " << blockDot;
         }

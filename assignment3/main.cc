@@ -2,7 +2,7 @@
 #include "parser.tab.hh"
 #include "symbol_table.h"
 #include "semantic_analyzer.hh"
-#include "ir_generator.h"
+#include "ir_generator.hh"
 #include "bytecode.h"
 #include "interpreter.h"
 
