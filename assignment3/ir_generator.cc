@@ -1,4 +1,5 @@
 #include "ir_generator.hh"
+#include <algorithm>
 
 void IRGenerator::generate(Node* root) {
     if (!root) return;
@@ -65,6 +66,7 @@ void IRGenerator::visitMainClass(Node* node) {
     currentBlock = exitBlock;
     currentBlock->addInstruction(TAC(TACOp::STOP, ""));
 
+    eliminatePassthroughBlocks(method);
     program.methods.push_back(method);
 }
 
@@ -148,6 +150,7 @@ void IRGenerator::visitMethod(Node* node) {
     string returnTemp = visitExpression(returnExpr);
     currentBlock->addInstruction(TAC(TACOp::RETURN, returnTemp));
 
+    eliminatePassthroughBlocks(method);
     program.methods.push_back(method);
 }
 
@@ -277,6 +280,62 @@ string IRGenerator::visitExpression(Node* node) {
     return "";
 }
 
+void IRGenerator::visitCondition(Node* condExpr, BasicBlock* trueBlock, BasicBlock* falseBlock) {
+    if (!condExpr) return;
+
+    // Unwrap parenthesized expression
+    if (condExpr->type == "Expression") {
+        visitCondition(condExpr->children.front(), trueBlock, falseBlock);
+        return;
+    }
+
+    // Short-circuit AND: if left is false jump directly to falseBlock,
+    // otherwise evaluate right in a new mid-block.
+    if (condExpr->type == "AndExpression") {
+        auto it = condExpr->children.begin();
+        Node* left = *it++;
+        Node* right = *it;
+
+        BasicBlock* midBlock = program.newBlock();
+        currentMethod->allBlocks.push_back(midBlock);
+
+        // Evaluate left in currentBlock; if false short-circuit to falseBlock
+        visitCondition(left, midBlock, falseBlock);
+
+        // Evaluate right in midBlock
+        currentBlock = midBlock;
+        visitCondition(right, trueBlock, falseBlock);
+        return;
+    }
+
+    // Short-circuit OR: if left is true jump directly to trueBlock,
+    // otherwise evaluate right in a new mid-block.
+    if (condExpr->type == "OrExpression") {
+        auto it = condExpr->children.begin();
+        Node* left = *it++;
+        Node* right = *it;
+
+        BasicBlock* midBlock = program.newBlock();
+        currentMethod->allBlocks.push_back(midBlock);
+
+        // Evaluate left in currentBlock; if true short-circuit to trueBlock.
+        // COND_JUMP jumps on false, so "iffalse left goto midBlock" with trueExit=trueBlock.
+        visitCondition(left, trueBlock, midBlock);
+
+        // Evaluate right in midBlock
+        currentBlock = midBlock;
+        visitCondition(right, trueBlock, falseBlock);
+        return;
+    }
+
+    // Default: evaluate the expression as a value, then branch.
+    string condTemp = visitExpression(condExpr);
+    currentBlock->addInstruction(TAC(TACOp::COND_JUMP, falseBlock->label, condTemp));
+    currentBlock->condition = condTemp;
+    currentBlock->trueExit = trueBlock;
+    currentBlock->falseExit = falseBlock;
+}
+
 BasicBlock* IRGenerator::visitStatement(Node* node, BasicBlock* block) {
     if (!node || !block) return block;
 
@@ -317,8 +376,6 @@ BasicBlock* IRGenerator::visitStatement(Node* node, BasicBlock* block) {
         Node* condExpr = *it++;
         Node* thenStmt = *it++;
 
-        string condTemp = visitExpression(condExpr);
-
         BasicBlock* thenBlock = program.newBlock();
         currentMethod->allBlocks.push_back(thenBlock);
         BasicBlock* mergeBlock = program.newBlock();
@@ -332,10 +389,7 @@ BasicBlock* IRGenerator::visitStatement(Node* node, BasicBlock* block) {
             BasicBlock* elseBlock = program.newBlock();
             currentMethod->allBlocks.push_back(elseBlock);
 
-            currentBlock->addInstruction(TAC(TACOp::COND_JUMP, elseBlock->label, condTemp));
-            currentBlock->condition = condTemp;
-            currentBlock->trueExit = thenBlock;
-            currentBlock->falseExit = elseBlock;
+            visitCondition(condExpr, thenBlock, elseBlock);
 
             BasicBlock* thenExit = visitStatement(thenStmt, thenBlock);
             thenExit->addInstruction(TAC(TACOp::JUMP, mergeBlock->label));
@@ -345,10 +399,7 @@ BasicBlock* IRGenerator::visitStatement(Node* node, BasicBlock* block) {
             elseExit->addInstruction(TAC(TACOp::JUMP, mergeBlock->label));
             elseExit->trueExit = mergeBlock;
         } else {
-            currentBlock->addInstruction(TAC(TACOp::COND_JUMP, mergeBlock->label, condTemp));
-            currentBlock->condition = condTemp;
-            currentBlock->trueExit = thenBlock;
-            currentBlock->falseExit = mergeBlock;
+            visitCondition(condExpr, thenBlock, mergeBlock);
 
             BasicBlock* thenExit = visitStatement(thenStmt, thenBlock);
             thenExit->addInstruction(TAC(TACOp::JUMP, mergeBlock->label));
@@ -363,6 +414,9 @@ BasicBlock* IRGenerator::visitStatement(Node* node, BasicBlock* block) {
         Node* condExpr = *it++;
         Node* bodyStmt = *it;
 
+        // condBlock is the entry of the condition evaluation.
+        // For && / ||, visitCondition may create additional blocks after condBlock,
+        // but the loop-back always targets condBlock (the first condition block).
         BasicBlock* condBlock = program.newBlock();
         currentMethod->allBlocks.push_back(condBlock);
         BasicBlock* bodyBlock = program.newBlock();
@@ -374,11 +428,7 @@ BasicBlock* IRGenerator::visitStatement(Node* node, BasicBlock* block) {
         currentBlock->trueExit = condBlock;
 
         currentBlock = condBlock;
-        string condTemp = visitExpression(condExpr);
-        condBlock->addInstruction(TAC(TACOp::COND_JUMP, exitBlock->label, condTemp));
-        condBlock->condition = condTemp;
-        condBlock->trueExit = bodyBlock;
-        condBlock->falseExit = exitBlock;
+        visitCondition(condExpr, bodyBlock, exitBlock);
 
         BasicBlock* bodyExit = visitStatement(bodyStmt, bodyBlock);
         bodyExit->addInstruction(TAC(TACOp::JUMP, condBlock->label));
@@ -388,6 +438,58 @@ BasicBlock* IRGenerator::visitStatement(Node* node, BasicBlock* block) {
     }
 
     return block;
+}
+
+void IRGenerator::eliminatePassthroughBlocks(MethodCFG* method) {
+    // Repeatedly eliminate blocks that contain only a single unconditional JUMP.
+    // These are "passthrough" blocks with no real work — redirecting their
+    // predecessors directly to their successor compacts the CFG.
+    bool changed = true;
+    while (changed) {
+        changed = false;
+
+        for (size_t i = 0; i < method->allBlocks.size(); i++) {
+            BasicBlock* block = method->allBlocks[i];
+
+            // Passthrough criteria: exactly one instruction, it is a JUMP,
+            // no false exit (unconditional), and does not loop to itself.
+            if (block->instructions.size() != 1 ||
+                block->instructions[0].op != TACOp::JUMP ||
+                block->falseExit != nullptr ||
+                block->trueExit == nullptr ||
+                block->trueExit == block) {
+                continue;
+            }
+
+            BasicBlock* successor = block->trueExit;
+            string blockLabel = block->label;
+            string successorLabel = successor->label;
+
+            // Redirect every block that referenced the passthrough block
+            for (BasicBlock* other : method->allBlocks) {
+                if (other == block) continue;
+
+                if (other->trueExit == block)  other->trueExit  = successor;
+                if (other->falseExit == block) other->falseExit = successor;
+
+                for (TAC& tac : other->instructions) {
+                    if ((tac.op == TACOp::JUMP || tac.op == TACOp::COND_JUMP) &&
+                        tac.result == blockLabel) {
+                        tac.result = successorLabel;
+                    }
+                }
+            }
+
+            if (method->entryBlock == block)
+                method->entryBlock = successor;
+
+            method->allBlocks.erase(method->allBlocks.begin() + i);
+            delete block;
+            i--;
+            changed = true;
+        }
+    }
+
 }
 
 void IRGenerator::writeDotFile(const string& filename) {

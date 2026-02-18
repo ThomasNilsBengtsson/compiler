@@ -202,7 +202,8 @@ void BytecodeGenerator::translateBlock(BasicBlock* block, MethodBytecode& method
     }
 }
 
-void BytecodeGenerator::translateMethod(MethodCFG* cfg) {
+void BytecodeGenerator::
+translateMethod(MethodCFG* cfg) {
     MethodBytecode method;
     method.name = cfg->name;
 
