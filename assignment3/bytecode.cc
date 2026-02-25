@@ -221,8 +221,7 @@ translateMethod(MethodCFG* cfg) {
     for (const string& param : allParams) {
         method.getOrCreateVar(param);
     }
-    // Emit istore in reverse order to match stack LIFO ordering:
-    // caller pushes args left-to-right, so last arg is on top of stack
+
     for (int i = allParams.size() - 1; i >= 0; i--) {
         int idx = method.varIndex[allParams[i]];
         method.instructions.push_back("istore " + to_string(idx));
@@ -260,15 +259,14 @@ translateMethod(MethodCFG* cfg) {
     }
 
     // Remove redundant istore/iload pairs
-    peepholeOptimize(method);
+    optimize(method);
 
     methods.push_back(method);
 }
 
-void BytecodeGenerator::peepholeOptimize(MethodBytecode& method) {
+void BytecodeGenerator::optimize(MethodBytecode& method) {
     auto& ins = method.instructions;
 
-    // Pass 1: Adjacent istore N; iload N -> remove both
     {
         vector<string> opt;
         size_t i = 0;
@@ -289,10 +287,6 @@ void BytecodeGenerator::peepholeOptimize(MethodBytecode& method) {
         ins = opt;
     }
 
-    // Pass 2: For "iconst V; istore N" where local N is loaded exactly once
-    // and never stored again, replace the "iload N" with "iconst V" and
-    // remove the original "iconst V; istore N".
-    // Same for "iload X; istore N" -> replace "iload N" with "iload X".
     {
         // Count how many times each local index is stored and loaded
         map<string, int> storeCount, loadCount;
@@ -301,8 +295,7 @@ void BytecodeGenerator::peepholeOptimize(MethodBytecode& method) {
             if (s.substr(0, 6) == "iload ")  loadCount[s.substr(6)]++;
         }
 
-        // Find candidates: "iconst V / iload X" followed by "istore N"
-        // where N is stored exactly once and loaded exactly once
+
         map<string, string> replacement;  // local index -> replacement instruction
         set<size_t> toRemove;
 
@@ -324,7 +317,6 @@ void BytecodeGenerator::peepholeOptimize(MethodBytecode& method) {
             }
         }
 
-        // Apply: rebuild instructions with removals and replacements
         vector<string> opt;
         for (size_t i = 0; i < ins.size(); i++) {
             if (toRemove.count(i)) continue;

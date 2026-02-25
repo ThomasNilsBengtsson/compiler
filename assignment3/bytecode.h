@@ -13,7 +13,7 @@ private:
     struct MethodBytecode {
         string name;
         vector<string> instructions;
-        map<string, int> varIndex;  // variable name -> index
+        map<string, int> varIndex;
         int nextVarIndex = 0;
 
         int getOrCreateVar(const string& name);
@@ -21,23 +21,18 @@ private:
 
     vector<MethodBytecode> methods;
 
-    // Translate a single TAC instruction to bytecode
     void translateTAC(const TAC& tac, MethodBytecode& method);
 
-    // Translate a basic block
     void translateBlock(BasicBlock* block, MethodBytecode& method, BasicBlock* nextBlock);
 
-    // Translate a method CFG
     void translateMethod(MethodCFG* cfg);
 
-    // Peephole optimization: remove redundant istore/iload pairs
-    void peepholeOptimize(MethodBytecode& method);
+    void optimize(MethodBytecode& method);
 
 public:
     void generate(IRProgram& program);
     void writeToFile(const string& filename);
 
-    // For debugging
     void print();
 };
 

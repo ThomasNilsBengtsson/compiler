@@ -27,11 +27,9 @@ public:
     string visitExpression(Node* node);
     BasicBlock* visitStatement(Node* node, BasicBlock* block);
 
-    // Generates short-circuit condition code for && and ||.
-    // On return, currentBlock is the last condition block created.
+
     void visitCondition(Node* condExpr, BasicBlock* trueBlock, BasicBlock* falseBlock);
 
-    // Post-processing: removes blocks that contain only a single goto.
     void eliminatePassthroughBlocks(MethodCFG* method);
 
     void writeDotFile(const string& filename);
