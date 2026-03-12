@@ -42,6 +42,7 @@ private:
     ScopeNode *currentScope;
     string currentScopeName;
     vector<ScopeNode*> scopes;
+    ScopeNode *rootScope;
 
 public:
     SymbolTable();
@@ -51,8 +52,10 @@ public:
     vector<Symbol *> findSymbol(string name);
     void printTable(ScopeNode *scope, int depth = 0);
     ScopeNode *getCurrentScope() { return currentScope; };
+    ScopeNode *getRootScope() { return rootScope; };
     string getCurrentScopeName() { return currentScopeName; }
     static void buildSymbolTable(Node *node, SymbolTable &symbolTable);
     string getSymbolType(ScopeNode *scope, Node *node);
+    Symbol* lookupInScopeChain(ScopeNode *scope, const string &name);
 };
 #endif

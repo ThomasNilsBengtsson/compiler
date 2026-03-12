@@ -3,30 +3,42 @@
 SymbolTable::SymbolTable()
 {
     currentScope = new ScopeNode();
+    rootScope = currentScope;
+}
+
+Symbol* SymbolTable::lookupInScopeChain(ScopeNode *scope, const string &name)
+{
+    ScopeNode *current = scope;
+    while (current)
+    {
+        for (auto &sym : current->symbols)
+        {
+            if (sym.name == name)
+                return &sym;
+        }
+        current = current->parent;
+    }
+    return nullptr;
 }
 
 void SymbolTable::enterScope(string scopeName)
 {
-    bool found = false;
-    for (auto it : scopes)
+    for (auto child : currentScope->children)
     {
-        if (it->scopeName == scopeName)
+        if (child->scopeName == scopeName)
         {
-            found = true;
-            currentScope = it;
-            currentScopeName = it->scopeName;
+            currentScope = child;
+            currentScopeName = child->scopeName;
+            return;
         }
     }
-    if (!found)
-    {
-        ScopeNode *newScope = new ScopeNode(currentScope);
-        currentScope->children.push_back(newScope);
-        newScope->scopeName = scopeName;
-        newScope->parent = currentScope;
-        currentScope = newScope;
-        currentScopeName = scopeName;
-        scopes.emplace_back(currentScope);
-    }
+    ScopeNode *newScope = new ScopeNode(currentScope);
+    currentScope->children.push_back(newScope);
+    newScope->scopeName = scopeName;
+    newScope->parent = currentScope;
+    currentScope = newScope;
+    currentScopeName = scopeName;
+    scopes.emplace_back(currentScope);
 }
 
 void SymbolTable::exitScope()
@@ -72,7 +84,7 @@ void SymbolTable::printTable(ScopeNode *scope, int depth)
 {
     for (const auto &symbol : scope->symbols)
     {
-        std::cout << std::string(depth * 2, ' ') // Indentation
+        std::cout << std::string(depth * 2, ' ')
                   << "Name: " << symbol.name
                   << ", Type: " << symbol.type
                   << ", Kind: " << (int)symbol.kind
@@ -130,6 +142,15 @@ void SymbolTable::buildSymbolTable(Node *node, SymbolTable &symbolTable)
             Node *typeNode = node->children.front();
             Node *nameNode = *(++node->children.begin());
             symbolTable.addSymbol(nameNode->value, typeNode->type, IdentifierKind::VARIABLE, nameNode->lineno);
+        }
+    }
+    else if (node->type == "Parameter")
+    {
+        if (node->children.size() >= 2)
+        {
+            Node *typeNode = node->children.front();
+            Node *nameNode = *(++node->children.begin());
+            symbolTable.addSymbol(nameNode->value, typeNode->type, IdentifierKind::PARAMETER, nameNode->lineno);
         }
     }
     else if (node->type == "MainClass")

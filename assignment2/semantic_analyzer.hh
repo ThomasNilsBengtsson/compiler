@@ -13,9 +13,7 @@ class SemanticAnalyzer
 private:
     SymbolTable symbolTable;
     vector<string> errors;
-    // Keep track of identifiers declared in the current scope to detect duplicates.
     std::unordered_map<ScopeNode *, std::unordered_set<std::string>> declaredIdentifiers;
-    // For checkReturnType
     std::map<string, string> IdentifierMap;
     vector<Node*> parents;
     Node* root;
@@ -39,6 +37,8 @@ public:
 
     void printSymbolTable();
     void reportError(string message, Node *node);
-    string findMethodCallType(string value, Node* root);
+    ScopeNode* getCurrentScopeNode();
+    ScopeNode* getCurrentClassScopeNode();
+    bool isUndeclared(Node *id, Symbol *sym, const string &className);
 };
 #endif
